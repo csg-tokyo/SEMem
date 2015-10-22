@@ -47,10 +47,10 @@ public class SendRecv {
 	public String exchangeMsgDes(int des) throws MPIException{
 		if (rank == des){
 			int[] cmd = bRecvCmd(MPI.ANY_SOURCE, Constants.EXCHANGE_MSG_TAG);
-			System.out.println(des + " received a command from " + cmd[2] + ": " + Constants.MEANING[cmd[0]]);
+			//System.out.println(des + " received a command from " + cmd[2] + ": " + Constants.MEANING[cmd[0]]);
 			if (cmd[0] == Constants.EXCHANGE_MSG_CMD){
 				String data = bRecvString(cmd[1], cmd[2], Constants.DATA_TAG);
-				System.out.println(des + " received data from " + cmd[2] + ": " + data);
+				//System.out.println(des + " received data from " + cmd[2] + ": " + data);
 				//bSendCmd(Constants.ACK_CMD, 0, cmd[2], Constants.ACK_TAG);
 				//System.out.println(rank + " sending ack OK");
 				return data;

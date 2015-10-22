@@ -49,7 +49,7 @@ public class Configure {
 	public static void setTsubame(){
 		HADOOP_TAR_GZ_FILE 		= "/work1/t2gcrest-masuhara/chung/hadoop-mpi/deploy/hadoop.tar.gz";			
 		DEPLOY_FOLDER 			= "/work1/t2gcrest-masuhara/chung/hadoop-mpi/deploy";	
-		DATA_FOLDER				= "/work1/t2gcrest-masuhara/chung/hdfs-test";
+		DATA_FOLDER				= "/work1/t2gcrest-masuhara/chung/hdfs";
 		JAVA_HOME				= "/home/usr9/14ITA182/.local/jdk1.7.0_65";	
 		USERNAME				= "14ITA182";		
 		
