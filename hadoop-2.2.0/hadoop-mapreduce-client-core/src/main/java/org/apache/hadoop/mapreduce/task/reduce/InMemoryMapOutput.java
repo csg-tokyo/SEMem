@@ -19,14 +19,8 @@ package org.apache.hadoop.mapreduce.task.reduce;
 
 import java.io.InputStream;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-
-import mpi.Intercomm;
 import mpi.MPI;
 import mpi.MPIException;
-import mpi.Request;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -47,6 +41,8 @@ import org.apache.hadoop.mapred.IFileInputStream;
 import org.apache.hadoop.mapred.Reporter;
 
 import org.apache.hadoop.mapreduce.TaskAttemptID;
+
+import csg.chung.mrhpc.utils.SendRecv;
 
 @InterfaceAudience.Private
 @InterfaceStability.Unstable
@@ -69,7 +65,7 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
     this.merger = merger;
     this.codec = codec;
     byteStream = new BoundedByteArrayOutputStream(size);
-    memory = byteStream.getBuffer();
+    //memory = byteStream.getBuffer();
     if (codec != null) {
       decompressor = CodecPool.getDecompressor(codec);
     } else {
@@ -133,33 +129,19 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
   
 	public void shuffleMPI(MapHost host, InputStream input, String mapId, long compressedLength,
 			long decompressedLength, ShuffleClientMetrics metrics,
-			Reporter reporter) throws IOException {
+			Reporter reporter, int shuffleMgrRank, int reduceID, String appId) throws IOException {
+		LOG.info("ShuffleMPI is started " + host.getHostName());	
 		try {
 			// MPI code is inserted here
 			try {
-				Intercomm parent = Intercomm.getParent();
-				InetAddress ip = InetAddress.getLocalHost();
-				System.out.println("Fetch from mappers: "
-						+ parent.getRemoteSize() + " - " + ip.getHostName());
-				LOG.info(host.getHostName());
-				int node = Integer.parseInt(host.getHostName().split(":")[0].replace("slave",""));
+				int rank = MPI.COMM_WORLD.getRank();
+								
+				SendRecv sr = new SendRecv();		
+				String msg = csg.chung.mrhpc.utils.Lib.buildCommand(csg.chung.mrhpc.utils.Constants.CMD_FETCH, Integer.toString(rank), appId, mapId, Integer.toString(reduceID));
 
-				String path = "/tmp/hadoop-mrhpc/nm-local-dir/usercache/mrhpc/appcache/" + host.getBaseUrl().split("=")[1].replace("&reduce", "").replace("job", "application")
-								+ "/output/" + mapId + "/file.out";
-				CharBuffer message = ByteBuffer.allocateDirect(500)
-						.asCharBuffer();
-				message.put(path.toCharArray());
-				Request request = parent.iSend(message,
-						path.toCharArray().length, MPI.CHAR, node, 99);
-				request.waitFor();
-				int length[] = new int[1];
-				parent.recv(length, 1, MPI.INT, node, 99);
-				LOG.info("Length " + length[0]);
-				memory = new byte[length[0]];
-				parent.recv(memory, length[0], MPI.BYTE, node, 99);
-				//for (int i=0; i < memory.length; i++){
-				//	memory[i] = bytes[i];
-				//}
+				sr.exchangeMsgSrc(rank, shuffleMgrRank, msg);					
+				memory = sr.exchangeByteDes(rank);
+				
 			} catch (MPIException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -168,7 +150,10 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
 			reporter.progress();
 			LOG.info("Read " + memory.length + " bytes from map-output for "
 					+ getMapId());
-			LOG.info("Memory: " + new String(memory));
+			
+			// Set copied size
+			this.setSize(memory.length);
+			
 			/**
 			 * We've gotten the amount of data we were expecting. Verify the
 			 * decompressor has nothing more to offer. This action also forces
@@ -176,10 +161,7 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
 			 * for decompression, which is necessary to keep the stream in sync.
 			 */
 
-		} catch (IOException ioe) {
-			// Re-throw
-			throw ioe;
-		} finally {
+		}finally {
 			CodecPool.returnDecompressor(decompressor);
 		}
 	}

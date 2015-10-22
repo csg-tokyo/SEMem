@@ -60,7 +60,7 @@ public class Configure {
 		
 		ELAPSED_TIME			= "00:30:00";	
 		
-		NUMBER_PROCESS_EACH_NODE= 6;	
+		NUMBER_PROCESS_EACH_NODE= 7;	
 	
 		LOCK_FILE_PATH = DEPLOY_FOLDER + "/hadoop/lock/";		
 	}

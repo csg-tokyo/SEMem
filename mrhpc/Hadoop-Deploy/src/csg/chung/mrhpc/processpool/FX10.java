@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import mpi.MPI;
 import mpi.MPIException;
 import csg.chung.mrhpc.utils.Lib;
+import csg.chung.mrhpc.utils.Constants;
 
 public class FX10 {
 	/* Don't change the below constants */
@@ -14,10 +15,11 @@ public class FX10 {
 	public final static String TMP_FOLDER 				= Configure.DEPLOY_FOLDER + "/hadoop/tmp/";
 	public final static String HADOOP_FOLDER 			= Configure.DEPLOY_FOLDER + "/hadoop/code/";
 	public final static String OPENMPI_JAVA_LIB 		= Configure.DEPLOY_FOLDER + "/openmpi/lib/";	
+	public final static String HOST_FILE				= TMP_FOLDER + "hostfile";	
 	
 	private int rank, size;
 	
-	public FX10(){
+	public FX10() throws IOException{
 		try {
 			rank = MPI.COMM_WORLD.getRank();
 			size = MPI.COMM_WORLD.getSize() - Configure.NUMBER_PROCESS_EACH_NODE;
@@ -44,11 +46,14 @@ public class FX10 {
 		}
 	}	
 	
-	public void startMPIProcess(){
+	public void startMPIProcess() throws IOException{
 		// Start every process
 		if (rank / Configure.NUMBER_PROCESS_EACH_NODE > 0){
 			if (rank % Configure.NUMBER_PROCESS_EACH_NODE == 0){
 				Pool p = new Pool(rank);
+				// For shuffle manager
+				p.setBusy(1);								
+
 				String hadoopFolder = HADOOP_FOLDER + rank; 
 				String logFolder = hadoopFolder + "/logs"; 				
 				String prop = 	"-Dhostname=" + Lib.getHostname() + " -Dhadoop.log.dir=" + logFolder + " -Dyarn.log.dir=" + logFolder + 
@@ -58,6 +63,10 @@ public class FX10 {
 				p.startNewProcess(prop, className, "");
 				p.waiting();
 				
+			}else
+			if (rank % Configure.NUMBER_PROCESS_EACH_NODE == 1){
+				ShuffleManager sm = new ShuffleManager(rank);
+				sm.waiting();		
 			}else{
 				new Process(rank).waiting();			
 			}
@@ -66,10 +75,17 @@ public class FX10 {
 	
 	public void startNonMPIProcess(){		
 		if (rank % Configure.NUMBER_PROCESS_EACH_NODE == 0){
+			initialize();
+			
 			Lib.runCommand("mkdir " + Configure.ANALYSIS_LOG);			
 			Lib.runCommand("java csg.chung.mrhpc.deploy.test.CPUUsage &> " + Configure.CPU_LOG + rank + ".txt &");
+			
+			// Write node info
+			if (rank % Configure.NUMBER_PROCESS_EACH_NODE == 0){
+				System.out.println(rank + " write to hostfile");
+				Lib.appendToFile(HOST_FILE, rank + Constants.SPLIT_REGEX + Lib.getHostname());
+			}								
 			if (rank == 0){
-				initialize();
 				startNameNode(rank);
 			}else{
 				startDataNode(rank);
@@ -201,7 +217,7 @@ public class FX10 {
 		Lib.runCommand("sed -i.bak 's/MRHPC_HADOOP_INSTALL/" + HADOOP_INSTALL.replaceAll("/", "\\\\/") + "/g' " + HADOOP_INSTALL + "/etc/hadoop/mapred-site.xml");			
 	}		
 	
-	public static void main(String[] args) throws MPIException {
+	public static void main(String[] args) throws MPIException, IOException {
 		MPI.InitThread(args, MPI.THREAD_SERIALIZED);
 		new FX10();
 		

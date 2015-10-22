@@ -33,6 +33,9 @@ import java.util.Set;
 import javax.crypto.SecretKey;
 import javax.net.ssl.HttpsURLConnection;
 
+import mpi.MPI;
+import mpi.MPIException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.io.IOUtils;
@@ -46,6 +49,8 @@ import org.apache.hadoop.mapreduce.security.SecureShuffleUtils;
 import org.apache.hadoop.security.ssl.SSLFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+
+import csg.chung.mrhpc.utils.SendRecv;
 
 class Fetcher<K,V> extends Thread {
   
@@ -238,9 +243,15 @@ class Fetcher<K,V> extends Thread {
    */
   @VisibleForTesting
   protected void copyFromHost(MapHost host) throws IOException {
+	  LOG.info("Start CopyFromHost " + host);    
     // Get completed maps on 'host'
     List<TaskAttemptID> maps = scheduler.getMapsForHost(host);
-    
+
+	String hostname = host.getHostName().split(":")[0];
+	int hostPoolRank = csg.chung.mrhpc.utils.Lib.getRankFromHost(csg.chung.mrhpc.processpool.FX10.HOST_FILE, hostname);				
+	int shuffleMgrRank = hostPoolRank + 1;    
+	String appId = host.getBaseUrl().split("=")[1].replace("&reduce", "").replace("job", "application");    
+	
     // Sanity check to catch hosts with only 'OBSOLETE' maps, 
     // especially at the tail of large jobs
     if (maps.size() == 0) {
@@ -339,7 +350,7 @@ class Fetcher<K,V> extends Thread {
       TaskAttemptID[] failedTasks = null;
       int count = 0;
       while (!remaining.isEmpty() && failedTasks == null) {
-        failedTasks = copyMapOutput(host, maps.get(count), remaining);
+        failedTasks = copyMapOutput(host, maps.get(count), remaining, shuffleMgrRank, appId);
         count++;
       }
       
@@ -372,7 +383,7 @@ class Fetcher<K,V> extends Thread {
   
   private TaskAttemptID[] copyMapOutput(MapHost host,
 		  		TaskAttemptID mapId,
-                                Set<TaskAttemptID> remaining) {
+                                Set<TaskAttemptID> remaining, int shuffleMgrRank, String appId) {
 	LOG.info("Start CopyMapOutput " + mapId);  
     MapOutput<K,V> mapOutput = null;
     //TaskAttemptID mapId = null;
@@ -438,7 +449,7 @@ class Fetcher<K,V> extends Thread {
        //     + mapOutput.getMapId() + " decomp: " + decompressedLength
        //     + " len: " + compressedLength + " to " + mapOutput.getDescription());
         mapOutput.shuffleMPI(host, null, mapId.toString(), decompressedLength, decompressedLength,
-            metrics, reporter);
+            metrics, reporter, shuffleMgrRank, this.reduce, appId);
       } catch (java.lang.InternalError e) {
         LOG.warn("Failed to shuffle for fetcher#"+id, e);
         throw new IOException(e);

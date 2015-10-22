@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.Date;
 
 import mpi.MPIException;
-import csg.chung.mrhpc.deploy.Constants;
+import csg.chung.mrhpc.utils.Constants;
 import csg.chung.mrhpc.utils.Lib;
 import csg.chung.mrhpc.utils.SendRecv;
 
@@ -86,8 +86,7 @@ public class Process {
 						}
 					}
 
-					String free = Lib.buildCommand(Integer.toString(rank),
-							Integer.toString(rank));
+					String free = Lib.buildCommand(Constants.CMD_FREE, Integer.toString(rank));
 					int parent = (int) (rank / Configure.NUMBER_PROCESS_EACH_NODE)
 							* Configure.NUMBER_PROCESS_EACH_NODE;
 					SendRecv srFree = new SendRecv();

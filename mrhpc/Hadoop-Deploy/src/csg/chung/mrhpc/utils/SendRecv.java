@@ -23,6 +23,27 @@ public class SendRecv {
 		}		
 	}
 	
+	public void exchangeByteSrc(int src, int des, byte[] bytes) throws MPIException{
+		if (rank == src){
+			bSendCmd(Constants.EXCHANGE_MSG_CMD, bytes.length, des, Constants.EXCHANGE_MSG_TAG);			
+			MPI.COMM_WORLD.send(bytes, bytes.length, MPI.BYTE, des, Constants.DATA_TAG);
+		}
+	}
+	
+	public byte[] exchangeByteDes(int des) throws MPIException{
+		if (rank == des){
+			int[] cmd = bRecvCmd(MPI.ANY_SOURCE, Constants.EXCHANGE_MSG_TAG);
+			//System.out.println(des + " received exchange bytes from " + cmd[2] + ": " + Constants.MEANING[cmd[0]]);
+			if (cmd[0] == Constants.EXCHANGE_MSG_CMD){
+				byte[] bytes = bRecvBytes(cmd[1], cmd[2], Constants.DATA_TAG);
+				//System.out.println(des + " received bytes from " + cmd[2] + ": " + bytes);
+				return bytes;
+			}
+		}
+		
+		return null;
+	}	
+	
 	public String exchangeMsgDes(int des) throws MPIException{
 		if (rank == des){
 			int[] cmd = bRecvCmd(MPI.ANY_SOURCE, Constants.EXCHANGE_MSG_TAG);
@@ -65,6 +86,13 @@ public class SendRecv {
 		
 		return String.valueOf(charArray);
 	}
+	
+	public byte[] bRecvBytes(int length, int proc, int tag) throws MPIException{
+		byte[] bytes = new byte[length];
+		MPI.COMM_WORLD.recv(bytes, length, MPI.BYTE, proc, tag);
+		
+		return bytes;
+	}	
 	
 	public static void main(String args[]) throws MPIException{
 		MPI.Init(args);

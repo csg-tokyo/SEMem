@@ -1,5 +1,7 @@
 package csg.chung.mrhpc.processpool;
 
+import java.io.IOException;
+
 import mpi.MPI;
 import mpi.MPIException;
 import csg.chung.mrhpc.processpool.Configure;
@@ -7,7 +9,7 @@ import csg.chung.mrhpc.processpool.FX10;
 
 public class Tsubame{
 
-	public static void main(String[] args) throws MPIException {
+	public static void main(String[] args) throws MPIException, IOException {
 		Configure.setTsubame();
 		
 		MPI.Init(args);

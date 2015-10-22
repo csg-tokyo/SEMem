@@ -3,17 +3,20 @@ package csg.chung.mrhpc.utils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.RandomAccessFile;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import mpi.MPI;
 import mpi.MPIException;
 
-import csg.chung.mrhpc.deploy.Constants;
+import csg.chung.mrhpc.utils.Constants;
 
 public class Lib {
 	public static void printNodeInfo(int rank, int size){
@@ -49,6 +52,34 @@ public class Lib {
 		
 		return null;
 	}
+	
+	public static int getRankFromHost(String hostfile, String host){
+		int rank = Constants.UNKNOW_INT;
+		
+		try {
+			FileReader fr = new FileReader(new File(hostfile));
+			BufferedReader in = new BufferedReader(fr);
+			
+			String line;
+			while ((line = in.readLine()) != null){
+				String split[] = line.split(Constants.SPLIT_REGEX);
+				if (split[1].equals(host)){
+					rank = Integer.parseInt(split[0]);
+				}
+			}
+			
+			in.close();
+			fr.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return rank;
+	}	
 	
 	public static int getRank(){
 		try {
@@ -145,4 +176,14 @@ public class Lib {
 			
 		}
 	}
+	
+	public static byte[] readFile(String path, long start, long length) throws IOException{
+		RandomAccessFile file = new RandomAccessFile(path, "r");
+		byte[] data = new byte[(int) length];
+		file.seek(start);
+		file.read(data);
+		file.close();
+		
+		return data;
+	}		
 }
