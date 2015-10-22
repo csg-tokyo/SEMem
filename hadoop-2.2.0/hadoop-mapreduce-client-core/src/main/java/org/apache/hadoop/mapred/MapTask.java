@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -72,6 +73,8 @@ import org.apache.hadoop.util.QuickSort;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.StringInterner;
 import org.apache.hadoop.util.StringUtils;
+import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
+import org.apache.hadoop.yarn.util.ConverterUtils;
 
 /** A Map task. */
 @InterfaceAudience.LimitedPrivate({"MapReduce"})
@@ -334,6 +337,12 @@ public class MapTask extends Task {
       runTaskCleanupTask(umbilical, reporter);
       return;
     }
+	String logDate1 = "application 1: " + new Date().getTime();
+	csg.chung.mrhpc.processpool.Configure.setTsubame();
+	csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.ANALYSIS_LOG + ConverterUtils.toContainerId(System.getenv(Environment.CONTAINER_ID.name())), logDate1);	  
+
+    String logDate = "application 2: " + new Date().getTime();
+	csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.ANALYSIS_LOG + ConverterUtils.toContainerId(System.getenv(Environment.CONTAINER_ID.name())), logDate);	  
 
     if (useNewApi) {
       runNewMapper(job, splitMetaInfo, umbilical, reporter);
@@ -712,6 +721,8 @@ public class MapTask extends Task {
                     TaskReporter reporter
                     ) throws IOException, ClassNotFoundException,
                              InterruptedException {
+	  LOG.info("Start");  
+	  
     // make a task context so we can get the classes
     org.apache.hadoop.mapreduce.TaskAttemptContext taskContext =
       new org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl(job, 
@@ -721,11 +732,13 @@ public class MapTask extends Task {
     org.apache.hadoop.mapreduce.Mapper<INKEY,INVALUE,OUTKEY,OUTVALUE> mapper =
       (org.apache.hadoop.mapreduce.Mapper<INKEY,INVALUE,OUTKEY,OUTVALUE>)
         ReflectionUtils.newInstance(taskContext.getMapperClass(), job);
+	  LOG.info("Make a mapper");
     // make the input format
     org.apache.hadoop.mapreduce.InputFormat<INKEY,INVALUE> inputFormat =
       (org.apache.hadoop.mapreduce.InputFormat<INKEY,INVALUE>)
         ReflectionUtils.newInstance(taskContext.getInputFormatClass(), job);
     // rebuild the input split
+    LOG.info("Make split");
     org.apache.hadoop.mapreduce.InputSplit split = null;
     split = getSplitDetails(new Path(splitIndex.getSplitLocation()),
         splitIndex.getStartOffset());
@@ -734,33 +747,43 @@ public class MapTask extends Task {
     org.apache.hadoop.mapreduce.RecordReader<INKEY,INVALUE> input =
       new NewTrackingRecordReader<INKEY,INVALUE>
         (split, inputFormat, reporter, taskContext);
-    
+    LOG.info("1");
     job.setBoolean(JobContext.SKIP_RECORDS, isSkipping());
     org.apache.hadoop.mapreduce.RecordWriter output = null;
-    
+    LOG.info("2");
     // get an output object
     if (job.getNumReduceTasks() == 0) {
       output = 
         new NewDirectOutputCollector(taskContext, job, umbilical, reporter);
+      LOG.info("3");
     } else {
       output = new NewOutputCollector(taskContext, job, umbilical, reporter);
+      LOG.info("33");
     }
-
     org.apache.hadoop.mapreduce.MapContext<INKEY, INVALUE, OUTKEY, OUTVALUE> 
     mapContext = 
       new MapContextImpl<INKEY, INVALUE, OUTKEY, OUTVALUE>(job, getTaskID(), 
           input, output, 
           committer, 
           reporter, split);
-
+    LOG.info("4");
     org.apache.hadoop.mapreduce.Mapper<INKEY,INVALUE,OUTKEY,OUTVALUE>.Context 
         mapperContext = 
           new WrappedMapper<INKEY, INVALUE, OUTKEY, OUTVALUE>().getMapContext(
               mapContext);
 
     try {
+  	  LOG.info("Start computing");
       input.initialize(split, mapperContext);
+		String logDate3 = "application 3: " + new Date().getTime();
+		csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.ANALYSIS_LOG + ConverterUtils.toContainerId(System.getenv(Environment.CONTAINER_ID.name())), logDate3);	  
+      
+	  LOG.info("Start running");
       mapper.run(mapperContext);
+		String logDate4 = "application 4: " + new Date().getTime();
+		csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.ANALYSIS_LOG + ConverterUtils.toContainerId(System.getenv(Environment.CONTAINER_ID.name())), logDate4);	  
+      
+	  LOG.info("Finish running");
       mapPhase.complete();
       setPhase(TaskStatus.Phase.SORT);
       statusUpdate(umbilical);
@@ -768,6 +791,10 @@ public class MapTask extends Task {
       input = null;
       output.close(mapperContext);
       output = null;
+		String logDate5 = "application 5: " + new Date().getTime();
+		csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.ANALYSIS_LOG + ConverterUtils.toContainerId(System.getenv(Environment.CONTAINER_ID.name())), logDate5);	  
+      
+	  LOG.info("Finish");
     } finally {
       closeQuietly(input);
       closeQuietly(output, mapperContext);
