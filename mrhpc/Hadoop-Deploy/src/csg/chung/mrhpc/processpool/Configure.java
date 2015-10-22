@@ -47,9 +47,9 @@ public class Configure {
 	public static String LOCK_FILE_PATH = DEPLOY_FOLDER + "/hadoop/lock/";
 	
 	public static void setTsubame(){
-		HADOOP_TAR_GZ_FILE 		= "/work1/t2gcrest-masuhara/chung/hadoop-mrhpc/deploy/hadoop.tar.gz";			
-		DEPLOY_FOLDER 			= "/work1/t2gcrest-masuhara/chung/hadoop-mrhpc/deploy";	
-		DATA_FOLDER				= "/work1/t2gcrest-masuhara/chung/hdfs";
+		HADOOP_TAR_GZ_FILE 		= "/work1/t2gcrest-masuhara/chung/hadoop-mpi/deploy/hadoop.tar.gz";			
+		DEPLOY_FOLDER 			= "/work1/t2gcrest-masuhara/chung/hadoop-mpi/deploy";	
+		DATA_FOLDER				= "/work1/t2gcrest-masuhara/chung/hdfs-test";
 		JAVA_HOME				= "/home/usr9/14ITA182/.local/jdk1.7.0_65";	
 		USERNAME				= "14ITA182";		
 		
