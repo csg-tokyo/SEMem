@@ -27,9 +27,9 @@ public class ShuffleManager {
 						int rID = Integer.parseInt(split[4]);
 						
 						byte[] bytes = ReadMapOutputThread.readMapOutput(hostname, appID, mapID, rID);
-						//long start= System.currentTimeMillis();
+						long start= System.currentTimeMillis();
 						sr.exchangeByteSrc(rank, Integer.parseInt(split[1]), bytes);
-						//System.out.println(mapID + " -4 " + rID + ": " + (System.currentTimeMillis() - start));
+						System.out.println(mapID + " -4 " + rID + ": " + (System.currentTimeMillis() - start));
 					}
 			}
 		} catch (MPIException e) {
