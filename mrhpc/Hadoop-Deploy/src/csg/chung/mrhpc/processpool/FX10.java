@@ -46,7 +46,7 @@ public class FX10 {
 		}
 	}	
 	
-	public void startMPIProcess() throws IOException{
+	public void startMPIProcess() throws IOException, MPIException{
 		// Start every process
 		if (rank / Configure.NUMBER_PROCESS_EACH_NODE > 0){
 			if (rank % Configure.NUMBER_PROCESS_EACH_NODE == 0){

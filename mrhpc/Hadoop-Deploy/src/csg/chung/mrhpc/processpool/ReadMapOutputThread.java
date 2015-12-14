@@ -14,14 +14,14 @@ public class ReadMapOutputThread extends Thread{
 	}	
 			
 	public static byte[] readMapOutput(String hostname, String appID, String mapID, int rID) throws IOException{
-		//long start = System.currentTimeMillis();
+		long start = System.currentTimeMillis();
 		String indexFilePath = buildPath(hostname, appID, mapID, "file.out.index");
 
 		ReadIndex info = new ReadIndex(indexFilePath, rID);
-		//System.out.println(mapID + " -1 " + rID + ": " + (System.currentTimeMillis() - start));	    	    
+		System.out.println(mapID + " -1 " + rID + ": " + (System.currentTimeMillis() - start));	    	    
 
 		String path = buildPath(hostname, appID, mapID, "file.out");	
-		//System.out.println(mapID + " -2 " + rID + ": " + (System.currentTimeMillis() - start));
+		System.out.println(mapID + " -2 " + rID + ": " + (System.currentTimeMillis() - start));
 		
 		RandomAccessFile file = new RandomAccessFile(path, "r");
 		byte[] data = new byte[(int) info.getLength()];
@@ -29,7 +29,7 @@ public class ReadMapOutputThread extends Thread{
 		file.read(data);
 		file.close();
 		
-		//System.out.println(mapID + " -3 " + rID + ": " + (System.currentTimeMillis() - start));		
+		System.out.println(mapID + " -3 " + rID + " length-" + info.getLength() + " : " + (System.currentTimeMillis() - start));		
 		
 		return data;		
 	}
