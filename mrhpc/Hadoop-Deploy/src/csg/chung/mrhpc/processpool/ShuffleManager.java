@@ -1,6 +1,8 @@
 package csg.chung.mrhpc.processpool;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import mpi.MPIException;
 import csg.chung.mrhpc.utils.Constants;
 import csg.chung.mrhpc.utils.Lib;
@@ -25,10 +27,13 @@ public class ShuffleManager {
 				String mapID = split[3];
 				int rID = Integer.parseInt(split[4]);
 
-				byte[] bytes = ReadMapOutputThread.readMapOutput(hostname, appID, mapID, rID);
+				ByteBuffer bytes = ReadMapOutputThread.readMapOutputToBuffer(hostname, appID, mapID, rID);
 				long start = System.currentTimeMillis();
-				sr.exchangeByteSrc(rank, Integer.parseInt(split[1]), bytes);
-				System.out.println(mapID + " -4 " + rID + ": " + (System.currentTimeMillis() - start));
+				sr.exchangeByteSrc_Send(rank, Integer.parseInt(split[1]), bytes, mapID, rID);
+				
+				String log = "Data Sending: " + (System.currentTimeMillis() - start) + " " + bytes.capacity();
+				csg.chung.mrhpc.processpool.Configure.setFX10();
+				csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.SHUFFLE_ENGINE_LOG + hostname + "_" + appID, log);					
 			}
 		}
 	}

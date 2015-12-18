@@ -34,6 +34,8 @@ public class Configure {
 	public static String CPU_LOG 		= DEPLOY_FOLDER + "/log/cpu_log_";	
 	public static String ANALYSIS_LOG 	= DEPLOY_FOLDER + "/log/";		
 	
+	public static String SHUFFLE_ENGINE_LOG = DEPLOY_FOLDER + "/log/shuffle_engine_";
+	
 	/**
 	 * Running time for Hadoop cluster
 	 */

@@ -1,5 +1,7 @@
 package csg.chung.mrhpc.utils;
 
+import java.nio.ByteBuffer;
+
 import mpi.MPI;
 import mpi.MPIException;
 import mpi.Status;
@@ -23,12 +25,26 @@ public class SendRecv {
 		}		
 	}
 	
-	public void exchangeByteSrc(int src, int des, byte[] bytes) throws MPIException{
+	public void exchangeByteSrc_Send(int src, int des, byte[] bytes, String mapID, int rID) throws MPIException{
 		if (rank == src){
-			bSendCmd(Constants.EXCHANGE_MSG_CMD, bytes.length, des, Constants.EXCHANGE_MSG_TAG);			
+			bSendCmd(Constants.EXCHANGE_MSG_CMD, bytes.length, des, Constants.EXCHANGE_MSG_TAG);	
 			MPI.COMM_WORLD.send(bytes, bytes.length, MPI.BYTE, des, Constants.DATA_TAG);
 		}
 	}
+	
+	public void exchangeByteSrc_Send(int src, int des, ByteBuffer bytes, String mapID, int rID) throws MPIException{
+		if (rank == src){
+			bSendCmd(Constants.EXCHANGE_MSG_CMD, bytes.capacity(), des, Constants.EXCHANGE_MSG_TAG);	
+			MPI.COMM_WORLD.send(bytes, bytes.capacity(), MPI.BYTE, des, Constants.DATA_TAG);
+		}
+	}	
+	
+	public void exchangeByteSrc_iSend(int src, int des, ByteBuffer bytes, String mapID, int rID) throws MPIException{
+		if (rank == src){
+			bSendCmd(Constants.EXCHANGE_MSG_CMD, bytes.capacity(), des, Constants.EXCHANGE_MSG_TAG);
+			MPI.COMM_WORLD.iSend(bytes, bytes.capacity(), MPI.BYTE, des, Constants.DATA_TAG);
+		}
+	}		
 	
 	public byte[] exchangeByteDes(int des) throws MPIException{
 		if (rank == des){
