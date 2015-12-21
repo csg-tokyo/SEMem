@@ -27,11 +27,12 @@ public class ShuffleManager {
 				String mapID = split[3];
 				int rID = Integer.parseInt(split[4]);
 
-				ByteBuffer bytes = ReadMapOutputThread.readMapOutputToBuffer(hostname, appID, mapID, rID);
+				//ByteBuffer bytes = ReadMapOutputThread.readMapOutputToBuffer(hostname, appID, mapID, rID);
+				byte[] bytes = ReadMapOutputThread.readMapOutputToByteArray(hostname, appID, mapID, rID);
 				long start = System.currentTimeMillis();
 				sr.exchangeByteSrc_Send(rank, Integer.parseInt(split[1]), bytes, mapID, rID);
 				
-				String log = "Data Sending: " + (System.currentTimeMillis() - start) + " " + bytes.capacity();
+				String log = "Data Sending: " + (System.currentTimeMillis() - start) + " " + bytes.length;
 				csg.chung.mrhpc.processpool.Configure.setFX10();
 				csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.SHUFFLE_ENGINE_LOG + hostname + "_" + appID, log);					
 			}

@@ -16,22 +16,25 @@ public class ReadMapOutputThread extends Thread{
 	}	
 			
 	public static byte[] readMapOutputToByteArray(String hostname, String appID, String mapID, int rID) throws IOException{
-		long start = System.currentTimeMillis();
 		String indexFilePath = buildPath(hostname, appID, mapID, "file.out.index");
 
 		ReadIndex info = new ReadIndex(indexFilePath, rID);
-		System.out.println(mapID + " -1 " + rID + ": " + (System.currentTimeMillis() - start));	    	    
-
-		String path = buildPath(hostname, appID, mapID, "file.out");	
-		System.out.println(mapID + " -2 " + rID + ": " + (System.currentTimeMillis() - start));
-		
+		String path = buildPath(hostname, appID, mapID, "file.out");			
 		RandomAccessFile file = new RandomAccessFile(path, "r");
+		
+		long start = System.currentTimeMillis();
+		String log = "ByteBuffer Allocating: " + (System.currentTimeMillis() - start);
+		csg.chung.mrhpc.processpool.Configure.setFX10();
+		csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.SHUFFLE_ENGINE_LOG + hostname + "_" + appID, log);	  		
+		
+		start = System.currentTimeMillis();
 		byte[] data = new byte[(int) info.getLength()];
 		file.seek(info.getStart());
 		file.read(data);
 		file.close();
 		
-		System.out.println(mapID + " -3 " + rID + " length-" + info.getLength() + " : " + (System.currentTimeMillis() - start));		
+		log = "MapOutput Reading: " + (System.currentTimeMillis() - start);
+		csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.SHUFFLE_ENGINE_LOG + hostname + "_" + appID, log);	  				
 		
 		return data;		
 	}
