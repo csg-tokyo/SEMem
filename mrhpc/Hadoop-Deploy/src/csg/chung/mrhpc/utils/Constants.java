@@ -24,4 +24,7 @@ public class Constants {
 	public final static String SPLIT_REGEX = "@@@";	
 		
 	public static final long TIME_WAIT_FOR_READING_MAP_OUTPUT = 1;	
+	
+	public static final int BUSY				= 1;
+	public static final int FREE				= 0;
 }

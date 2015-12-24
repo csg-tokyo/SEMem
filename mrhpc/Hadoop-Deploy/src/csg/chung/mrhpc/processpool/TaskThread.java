@@ -77,7 +77,7 @@ public class TaskThread extends Thread {
 		//System.out.println("Make dir: " + FX10.TMP_FOLDER + Lib.getHostname() + "/" + Lib.getRank());
 		Lib.runCommand("rm -rf " + FX10.TMP_FOLDER + Lib.getHostname() + "/" + Lib.getRank());
 		Lib.runCommand("mkdir " + FX10.TMP_FOLDER + Lib.getHostname() + "/" + Lib.getRank());		
-		System.out.println("User dir:" + System.getProperty("user.dir"));
+		//System.out.println("User dir:" + System.getProperty("user.dir"));
 		if (System.getProperty("user.dir") != null){
 			setPropKey.add("user.dir");
 			setPropValue.add(System.getProperty("user.dir"));
@@ -86,7 +86,7 @@ public class TaskThread extends Thread {
 			setPropValue.add(Constants.UNKNOW);			
 		}
 		System.setProperty("user.dir", FX10.TMP_FOLDER + Lib.getHostname() + "/" + Lib.getRank());
-		System.out.println("User dir:" + System.getProperty("user.dir"));
+		//System.out.println("User dir:" + System.getProperty("user.dir"));
 	}
 	
 	public void lineAnalyze(String line){
@@ -203,14 +203,14 @@ public class TaskThread extends Thread {
 			//System.out.println("Classpath: " + classpathExt.toString());			
 			//System.out.println("Free memory: " + Runtime.getRuntime().freeMemory());  			
 			Class<?> hello = Class.forName(className);
-			System.out.println(MPI.COMM_WORLD.getRank() + " (1)" + " --> " + (System.currentTimeMillis() - time));
+			//System.out.println(MPI.COMM_WORLD.getRank() + " (1)" + " --> " + (System.currentTimeMillis() - time));
 			//System.out.println("Free memory 1: " + Runtime.getRuntime().freeMemory());  			
 			Method mainMethod = hello.getMethod("main", String[].class);
-			System.out.println(MPI.COMM_WORLD.getRank() + " (2)" + " --> " + (System.currentTimeMillis() - time));			
+			//System.out.println(MPI.COMM_WORLD.getRank() + " (2)" + " --> " + (System.currentTimeMillis() - time));			
 			//System.out.println("Free memory 2: " + Runtime.getRuntime().freeMemory());  						
 			Object[] arguments = new Object[] {args};
 			mainMethod.invoke(null, arguments);
-			System.out.println(MPI.COMM_WORLD.getRank() + " (3)" + " --> " + (System.currentTimeMillis() - time));		
+			//System.out.println(MPI.COMM_WORLD.getRank() + " (3)" + " --> " + (System.currentTimeMillis() - time));		
 			//System.out.println("Free memory 3: " + Runtime.getRuntime().freeMemory());  						
 			//Thread.currentThread().setName("NodeManager");
 			//System.out.println(MPI.COMM_WORLD.getRank() + " thread ID: " + Thread.currentThread().getId() + " --> " + (System.currentTimeMillis() - time));

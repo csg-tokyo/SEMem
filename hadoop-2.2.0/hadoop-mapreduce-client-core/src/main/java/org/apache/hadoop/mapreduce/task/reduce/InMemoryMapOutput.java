@@ -19,6 +19,8 @@ package org.apache.hadoop.mapreduce.task.reduce;
 
 import java.io.InputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+
 import mpi.MPI;
 import mpi.MPIException;
 
@@ -42,6 +44,8 @@ import org.apache.hadoop.mapred.Reporter;
 
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 
+import csg.chung.mrhpc.utils.Constants;
+import csg.chung.mrhpc.utils.Lib;
 import csg.chung.mrhpc.utils.SendRecv;
 
 @InterfaceAudience.Private
@@ -56,6 +60,8 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
   private final CompressionCodec codec;
   private final Decompressor decompressor;
 
+  private static ByteBuffer buf = ByteBuffer.allocateDirect(csg.chung.mrhpc.processpool.ShuffleManager.RECV_BUFFER_CAPACITY);  
+  
   public InMemoryMapOutput(Configuration conf, TaskAttemptID mapId,
                            MergeManagerImpl<K, V> merger,
                            int size, CompressionCodec codec,
@@ -138,8 +144,10 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
 								
 				SendRecv sr = new SendRecv();		
 				String msg = csg.chung.mrhpc.utils.Lib.buildCommand(csg.chung.mrhpc.utils.Constants.CMD_FETCH, Integer.toString(rank), appId, mapId, Integer.toString(reduceID));
-
-				sr.exchangeMsgSrc(rank, shuffleMgrRank, msg);					
+				
+				buf.position(0);
+				Lib.putString(buf, msg);
+				MPI.COMM_WORLD.send(buf, Lib.getStringLengthInByte(msg), MPI.BYTE, shuffleMgrRank, Constants.EXCHANGE_MSG_TAG);				
 				memory = sr.exchangeByteDes(rank);
 				
 			} catch (MPIException e) {

@@ -66,7 +66,7 @@ public class FX10 {
 			}else
 			if (rank % Configure.NUMBER_PROCESS_EACH_NODE == 1){
 				ShuffleManager sm = new ShuffleManager(rank);
-				sm.waiting();		
+				sm.waitingNonblocking();		
 			}else{
 				new Process(rank).waiting();			
 			}
