@@ -10,8 +10,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.RandomAccessFile;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 
 import mpi.MPI;
 import mpi.MPIException;
@@ -186,4 +188,42 @@ public class Lib {
 		
 		return data;
 	}		
+	
+	public static String getString(ByteBuffer b) {
+		String data = "";
+		char c;
+		b.position(0);
+		while ((c=b.getChar()) != '\0'){
+			data += c;
+		}
+		
+		return data;
+	}	
+	
+	public static ByteBuffer putString(ByteBuffer b, String msg){
+		for (int i=0; i < msg.length(); i++){
+			b.putChar(msg.charAt(i));
+		}
+		
+		return b;
+	}
+	
+	public static String getStringByNumberOfCharacters(ByteBuffer b, int number) {
+		b.position(0);
+		String data = "";
+		
+		for (int i=0; i < number; i++){
+			data += b.getChar();
+		}
+		
+		return data;
+	}
+	
+	public static int getStringLengthInByte(String s) throws UnsupportedEncodingException{
+		return s.getBytes("UTF-16").length - 2;
+	}
+	
+	public static int getUTF_16_Character_Size(){
+		return 2;
+	}
 }
