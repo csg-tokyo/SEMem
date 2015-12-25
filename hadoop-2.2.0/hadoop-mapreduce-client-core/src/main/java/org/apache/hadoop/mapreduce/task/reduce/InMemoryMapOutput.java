@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 
 import mpi.MPI;
 import mpi.MPIException;
+import mpi.Status;
 
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
@@ -60,7 +61,8 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
   private final CompressionCodec codec;
   private final Decompressor decompressor;
 
-  private static ByteBuffer buf = ByteBuffer.allocateDirect(csg.chung.mrhpc.processpool.ShuffleManager.RECV_BUFFER_CAPACITY);  
+  private static ByteBuffer bufCMD = ByteBuffer.allocateDirect(csg.chung.mrhpc.processpool.ShuffleManager.RECV_BUFFER_CAPACITY);  
+  private static ByteBuffer bufData = ByteBuffer.allocateDirect(csg.chung.mrhpc.processpool.SendingPool.SLOT_BUFFER_SIZE);   
   
   public InMemoryMapOutput(Configuration conf, TaskAttemptID mapId,
                            MergeManagerImpl<K, V> merger,
@@ -142,13 +144,21 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
 			try {
 				int rank = MPI.COMM_WORLD.getRank();
 								
-				SendRecv sr = new SendRecv();		
 				String msg = csg.chung.mrhpc.utils.Lib.buildCommand(csg.chung.mrhpc.utils.Constants.CMD_FETCH, Integer.toString(rank), appId, mapId, Integer.toString(reduceID));
 				
-				buf.position(0);
-				Lib.putString(buf, msg);
-				MPI.COMM_WORLD.send(buf, Lib.getStringLengthInByte(msg), MPI.BYTE, shuffleMgrRank, Constants.EXCHANGE_MSG_TAG);				
-				memory = sr.exchangeByteDes(rank);
+				bufCMD.position(0);
+				Lib.putString(bufCMD, msg);
+				MPI.COMM_WORLD.send(bufCMD, Lib.getStringLengthInByte(msg), MPI.BYTE, shuffleMgrRank, Constants.EXCHANGE_MSG_TAG);				
+				
+				Status status = MPI.COMM_WORLD.recv(bufData, bufData.capacity(), MPI.BYTE, shuffleMgrRank, Constants.DATA_TAG);
+				
+				byte recv[] = new byte[status.getCount(MPI.BYTE)];
+				bufData.position(0);
+				for (int i=0; i < recv.length; i++){
+					recv[i] = bufData.get();
+				}
+				
+				memory = recv;
 				
 			} catch (MPIException e) {
 				// TODO Auto-generated catch block

@@ -16,17 +16,17 @@ public class ShuffleManager {
 	
 	private int rank;
 	private String hostname;
+	private SendingPool sendingPool;
 	
 	public ShuffleManager(int rank){
 		this.rank = rank;
 		this.hostname = Lib.getHostname();
+		this.sendingPool = new SendingPool();
 	}
 	
 	public void waitingNonblocking() throws MPIException, IOException{
 		ByteBuffer buf = ByteBuffer.allocateDirect(RECV_BUFFER_CAPACITY);
 		Request req = null;
-		
-		SendRecv sr = new SendRecv();
 		
 		while (true){
 			if (req == null){
@@ -36,7 +36,6 @@ public class ShuffleManager {
 			Status status = req.testStatus();
 			if (status != null){
 				String cmd = Lib.getStringByNumberOfCharacters(buf, status.getCount(MPI.BYTE) / Lib.getUTF_16_Character_Size());
-				System.out.println("Shuffle: " + cmd);
 				buf.clear();
 				req = null;
 				
@@ -46,16 +45,11 @@ public class ShuffleManager {
 					String mapID = split[3];
 					int rID = Integer.parseInt(split[4]);
 
-					//ByteBuffer bytes = ReadMapOutputThread.readMapOutputToBuffer(hostname, appID, mapID, rID);
-					byte[] bytes = ReadMapOutputThread.readMapOutputToByteArray(hostname, appID, mapID, rID);
-					long start = System.currentTimeMillis();
-					sr.exchangeByteSrc_Send(rank, Integer.parseInt(split[1]), bytes, mapID, rID);
-					
-					String log = "Data Sending: " + (System.currentTimeMillis() - start) + " " + bytes.length;
-					csg.chung.mrhpc.processpool.Configure.setFX10();
-					csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.SHUFFLE_ENGINE_LOG + hostname + "_" + appID, log);					
+					sendingPool.addToWaitList(hostname, appID, mapID, rID, Integer.parseInt(split[1]));
 				}				
 			}
+			
+			sendingPool.progress();
 		}
 	}
 	
