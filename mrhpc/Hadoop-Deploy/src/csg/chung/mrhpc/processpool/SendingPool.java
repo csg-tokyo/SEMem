@@ -2,12 +2,11 @@ package csg.chung.mrhpc.processpool;
 
 import java.io.IOException;
 import java.util.LinkedList;
-
 import mpi.MPIException;
 
 public class SendingPool {
-	public static int POOL_SIZE = 10;
-	public static int SLOT_BUFFER_SIZE = 64*1024*1024;
+	public static int POOL_SIZE = 160;
+	public static int SLOT_BUFFER_SIZE = 4*1024*1024;
 	
 	private SendingPoolSlot slots[] = new SendingPoolSlot[POOL_SIZE];
 	private LinkedList<SendingPoolWait> waiting;
@@ -20,17 +19,45 @@ public class SendingPool {
 		waiting = new LinkedList<SendingPoolWait>();
 	}
 	
-	public void addToWaitList(String hostname, String appID, String mapID, int rID, int client) throws IOException{
-		String indexFilePath = buildPath(hostname, appID, mapID, "file.out.index");
-
-		ReadIndex info = new ReadIndex(indexFilePath, rID);
-		String path = buildPath(hostname, appID, mapID, "file.out");
-		long length = info.getLength();
-		long start = info.getStart();
-		
-		SendingPoolWait newReading = new SendingPoolWait(path, length, start, client);
-		waiting.push(newReading);
+	public void addToWaitList(String hostname, String appID, String mapID, int rID, int client){
+		new WaitListThread(hostname, appID, mapID, rID, client).start();
 	}
+	
+	class WaitListThread extends Thread{
+		String hostname;
+		String appID;
+		String mapID;
+		int rID;
+		int client;
+		
+		public WaitListThread(String hostname, String appID, String mapID, int rID, int client){
+			this.hostname = hostname;
+			this.appID = appID;
+			this.mapID = mapID;
+			this.rID = rID;
+			this.client = client;
+		}
+		
+		@Override
+		public void run() {
+			try {
+				String indexFilePath = buildPath(hostname, appID, mapID,
+						"file.out.index");
+
+				ReadIndex info = new ReadIndex(indexFilePath, rID);
+				String path = buildPath(hostname, appID, mapID, "file.out");
+				long length = info.getLength();
+				long start = info.getStart();
+
+				SendingPoolWait newReading = new SendingPoolWait(path, length, start, client);
+				synchronized (waiting) {
+					waiting.push(newReading);
+				}
+			} catch (IOException e) {
+
+			}
+		}
+	}	
 	
 	public void progress() throws IOException, MPIException{
 		// Progress
@@ -42,7 +69,9 @@ public class SendingPool {
 		if (!waiting.isEmpty()){
 			for (int i=0; i < POOL_SIZE; i++){
 				if (slots[i].checkFree()){
-					slots[i].assignTask(waiting.pop());
+					synchronized (waiting) {
+						slots[i].assignTask(waiting.pop());						
+					}
 				}
 				
 				if (waiting.isEmpty()){

@@ -20,6 +20,7 @@ package org.apache.hadoop.mapreduce.task.reduce;
 import java.io.InputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.Date;
 
 import mpi.MPI;
 import mpi.MPIException;
@@ -44,6 +45,8 @@ import org.apache.hadoop.mapred.IFileInputStream;
 import org.apache.hadoop.mapred.Reporter;
 
 import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
+import org.apache.hadoop.yarn.util.ConverterUtils;
 
 import csg.chung.mrhpc.utils.Constants;
 import csg.chung.mrhpc.utils.Lib;
@@ -142,6 +145,10 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
 		try {
 			// MPI code is inserted here
 			try {
+		      	String logDate = "Sub MapID start: " + new Date().getTime();
+		    	csg.chung.mrhpc.processpool.Configure.setFX10();
+		    	csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.ANALYSIS_LOG + ConverterUtils.toContainerId(System.getenv(Environment.CONTAINER_ID.name())), logDate);	                    				
+				
 				int rank = MPI.COMM_WORLD.getRank();
 								
 				String msg = csg.chung.mrhpc.utils.Lib.buildCommand(csg.chung.mrhpc.utils.Constants.CMD_FETCH, Integer.toString(rank), appId, mapId, Integer.toString(reduceID));
@@ -152,6 +159,10 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
 				
 				Status status = MPI.COMM_WORLD.recv(bufData, bufData.capacity(), MPI.BYTE, shuffleMgrRank, Constants.DATA_TAG);
 				
+		      	String logDate1 = "Sub MapID end: " + new Date().getTime();
+		    	csg.chung.mrhpc.processpool.Configure.setFX10();
+		    	csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.ANALYSIS_LOG + ConverterUtils.toContainerId(System.getenv(Environment.CONTAINER_ID.name())), logDate1);	                    												
+				
 				byte recv[] = new byte[status.getCount(MPI.BYTE)];
 				bufData.position(0);
 				for (int i=0; i < recv.length; i++){
@@ -159,6 +170,10 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
 				}
 				
 				memory = recv;
+				
+		      	logDate1 = "Sub MapID1 end: " + new Date().getTime();
+		    	csg.chung.mrhpc.processpool.Configure.setFX10();
+		    	csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.ANALYSIS_LOG + ConverterUtils.toContainerId(System.getenv(Environment.CONTAINER_ID.name())), logDate1);	                    								
 				
 			} catch (MPIException e) {
 				// TODO Auto-generated catch block

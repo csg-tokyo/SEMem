@@ -23,6 +23,7 @@ public class SendingPoolSlot {
 	long length;
 	long start;
 	int client;
+	long startTime;
 	
 	Future<Integer> result = null;
 	Request req = null;
@@ -37,24 +38,43 @@ public class SendingPoolSlot {
 		return status == Constants.FREE ? true : false;
 	}
 	
-	public void assignTask(SendingPoolWait w) throws IOException{
+	public void assignTask(SendingPoolWait w){
 		status = Constants.BUSY;
+		new AssignTaskThread(w).start();
+	}
+	
+	class AssignTaskThread extends Thread{
+		SendingPoolWait w;
 		
-		filePath = w.filePath;
-		length = w.length;
-		start = w.start;
-		client = w.client;
+		public AssignTaskThread(SendingPoolWait w){
+			this.w = w;
+		}
 		
-		Path path = Paths.get(filePath);
-		channel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);				
-		buffer.position(0);
-		buffer.limit((int)length);
-		result = channel.read(buffer, start);
+		@Override
+		public void run(){
+			try{
+				filePath = w.filePath;
+				length = w.length;
+				start = w.start;
+				client = w.client;
+				
+				startTime = System.currentTimeMillis();
+				Path path = Paths.get(filePath);
+				channel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);				
+				buffer.position(0);
+				buffer.limit((int)length);
+				result = channel.read(buffer, start);	
+			}catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}	
+		}
 	}
 	
 	public void progress() throws MPIException, IOException{
 		if (result != null && result.isDone()){
 			// iSend here
+			System.out.println(MPI.COMM_WORLD.getRank() + " Reading: " + (System.currentTimeMillis() - startTime));
 			req = MPI.COMM_WORLD.iSend(buffer, (int) length, MPI.BYTE, client, Constants.DATA_TAG);
 			result = null;
 		}
@@ -67,6 +87,7 @@ public class SendingPoolSlot {
 				buffer.clear();
 				req = null;
 				channel.close();
+				System.out.println(MPI.COMM_WORLD.getRank() + " Sending: " + (System.currentTimeMillis() - startTime));				
 			}
 		}
 	}

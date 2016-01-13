@@ -32,7 +32,7 @@ public class ShuffleManager {
 			if (req == null){
 				req = MPI.COMM_WORLD.iRecv(buf, buf.capacity(), MPI.BYTE, MPI.ANY_SOURCE, Constants.EXCHANGE_MSG_TAG);
 			}
-			
+
 			Status status = req.testStatus();
 			if (status != null){
 				String cmd = Lib.getStringByNumberOfCharacters(buf, status.getCount(MPI.BYTE) / Lib.getUTF_16_Character_Size());
@@ -44,12 +44,17 @@ public class ShuffleManager {
 					String appID = split[2];
 					String mapID = split[3];
 					int rID = Integer.parseInt(split[4]);
-
+					long start = System.currentTimeMillis();
 					sendingPool.addToWaitList(hostname, appID, mapID, rID, Integer.parseInt(split[1]));
+					System.out.println(rank + " WaitList: " + (System.currentTimeMillis() - start));
 				}				
 			}
-			
+			long start = System.currentTimeMillis();			
 			sendingPool.progress();
+			long time = (System.currentTimeMillis() - start);
+			if (rank == 8 && time > 1){
+				System.out.println("Progress: " + time);			
+			}
 		}
 	}
 	
