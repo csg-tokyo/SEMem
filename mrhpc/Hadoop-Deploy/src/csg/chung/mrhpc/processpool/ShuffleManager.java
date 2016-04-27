@@ -44,17 +44,12 @@ public class ShuffleManager {
 					String appID = split[2];
 					String mapID = split[3];
 					int rID = Integer.parseInt(split[4]);
-					long start = System.currentTimeMillis();
+					//long start = System.currentTimeMillis();
 					sendingPool.addToWaitList(hostname, appID, mapID, rID, Integer.parseInt(split[1]));
-					System.out.println(rank + " WaitList: " + (System.currentTimeMillis() - start));
+					//System.out.println(rank + " WaitList: " + (System.currentTimeMillis() - start));
 				}				
-			}
-			long start = System.currentTimeMillis();			
+			}			
 			sendingPool.progress();
-			long time = (System.currentTimeMillis() - start);
-			if (rank == 8 && time > 1){
-				System.out.println("Progress: " + time);			
-			}
 		}
 	}
 	

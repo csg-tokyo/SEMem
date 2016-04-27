@@ -74,7 +74,7 @@ public class SendingPoolSlot {
 	public void progress() throws MPIException, IOException{
 		if (result != null && result.isDone()){
 			// iSend here
-			System.out.println(MPI.COMM_WORLD.getRank() + " Reading: " + (System.currentTimeMillis() - startTime));
+			//System.out.println(MPI.COMM_WORLD.getRank() + " Reading: " + (System.currentTimeMillis() - startTime));
 			req = MPI.COMM_WORLD.iSend(buffer, (int) length, MPI.BYTE, client, Constants.DATA_TAG);
 			result = null;
 		}
@@ -87,7 +87,7 @@ public class SendingPoolSlot {
 				buffer.clear();
 				req = null;
 				channel.close();
-				System.out.println(MPI.COMM_WORLD.getRank() + " Sending: " + (System.currentTimeMillis() - startTime));				
+				//System.out.println(MPI.COMM_WORLD.getRank() + " Sending: " + (System.currentTimeMillis() - startTime));				
 			}
 		}
 	}
