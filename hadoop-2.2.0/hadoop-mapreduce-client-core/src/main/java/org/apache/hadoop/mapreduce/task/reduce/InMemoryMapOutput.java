@@ -157,6 +157,11 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
 				Lib.putString(bufCMD, msg);
 				MPI.COMM_WORLD.send(bufCMD, Lib.getStringLengthInByte(msg), MPI.BYTE, shuffleMgrRank, Constants.EXCHANGE_MSG_TAG);				
 				
+		      	String logDate2 = "Sub MapID2 end: " + new Date().getTime();
+		    	csg.chung.mrhpc.processpool.Configure.setFX10();
+		    	csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.ANALYSIS_LOG + ConverterUtils.toContainerId(System.getenv(Environment.CONTAINER_ID.name())), logDate2);	                    												
+				
+				
 				Status status = MPI.COMM_WORLD.recv(bufData, bufData.capacity(), MPI.BYTE, shuffleMgrRank, Constants.DATA_TAG);
 				
 		      	String logDate1 = "Sub MapID end: " + new Date().getTime();

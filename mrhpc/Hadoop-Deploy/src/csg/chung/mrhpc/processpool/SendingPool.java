@@ -5,8 +5,8 @@ import java.util.LinkedList;
 import mpi.MPIException;
 
 public class SendingPool {
-	public static int POOL_SIZE = 160;
-	public static int SLOT_BUFFER_SIZE = 4*1024*1024;
+	public static int POOL_SIZE = 5;
+	public static int SLOT_BUFFER_SIZE = 10*1024*1024;
 	
 	private SendingPoolSlot slots[] = new SendingPoolSlot[POOL_SIZE];
 	private LinkedList<SendingPoolWait> waiting;
