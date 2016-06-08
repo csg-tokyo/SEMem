@@ -55,6 +55,18 @@ public class Lib {
 		return null;
 	}
 	
+	public static String getHostAddress(){
+		try {
+			InetAddress ip = InetAddress.getLocalHost();
+			return ip.getHostAddress();
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+		
+		return null;
+	}		
+	
 	public static int getRankFromHost(String hostfile, String host){
 		int rank = Constants.UNKNOW_INT;
 		
