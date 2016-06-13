@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -17,10 +18,39 @@ import java.nio.ByteBuffer;
 
 import mpi.MPI;
 import mpi.MPIException;
-
+import csg.chung.mrhpc.processpool.SendingPool;
 import csg.chung.mrhpc.utils.Constants;
 
 public class Lib {
+	public static String MAP_OUTPUT_DATA = "/group/gc83/c83014/hadoop-mpi-inmemory/deploy/mapoutput.txt";
+	public static String MAP_OUTPUT_DATA_ORI = "/group/gc83/c83014/hadoop-mpi-inmemory/deploy/mapoutputOri.txt";	
+	public static ByteBuffer bufData = ByteBuffer.allocateDirect(SendingPool.SLOT_BUFFER_SIZE);
+	
+	public static void writeToFile(String path, ByteBuffer buf) throws IOException{
+		FileOutputStream out = new FileOutputStream(path, true);
+		out.write(Lib.getByteFromByteBuffer(buf));
+		out.close();
+	}
+
+	public static void writeToBuffer(ByteBuffer buf, byte[] data, int off, int len){
+		buf.put(data, off, len);
+	}
+
+	public static void writeIntToBuffer(ByteBuffer buf, int data){
+		buf.putInt(data);
+	}
+	
+	public static byte[] getByteFromByteBuffer(ByteBuffer data){
+		byte[] result = new byte[data.limit()];
+		
+		data.position(0);
+		for (int i=0; i < data.limit(); i++){
+			result[i] = data.get();
+		}
+		
+		return result;
+	}
+	
 	public static void printNodeInfo(int rank, int size){
 		try {
 			InetAddress ip = InetAddress.getLocalHost();

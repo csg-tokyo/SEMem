@@ -4,14 +4,14 @@ public class Configure {
 	/**
 	 * Running file
 	 */
-	public static String HADOOP_TAR_GZ_FILE 		= "/group/gc83/c83014/hadoop-mpi/deploy/hadoop.tar.gz";	
+	public static String HADOOP_TAR_GZ_FILE 		= "/group/gc83/c83014/hadoop-mpi-inmemory/deploy/hadoop.tar.gz";	
 	
 	/**
 	 * Deploying directory for whole data: source code, storage, logs, and so on. 
 	 * Note: don't add / in the end of the path
 	 */
-	public static String DEPLOY_FOLDER 			= "/group/gc83/c83014/hadoop-mpi/deploy";
-	public static String DATA_FOLDER 			= "/group/gc83/c83014/hdfs-mpi";
+	public static String DEPLOY_FOLDER 			= "/group/gc83/c83014/hadoop-mpi-inmemory/deploy";
+	public static String DATA_FOLDER 			= "/group/gc83/c83014/hdfs-mpi-inmemory";
 	
 	/**
 	 * Java home path. "/usr/local/java/openjdk7" is JAVA_HOME on FX10.
