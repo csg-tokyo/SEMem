@@ -9,6 +9,7 @@ import mpi.Request;
 import mpi.Status;
 import csg.chung.mrhpc.utils.Constants;
 import csg.chung.mrhpc.utils.Lib;
+import csg.chung.mrhpc.utils.MapOutputObj;
 import csg.chung.mrhpc.utils.SendRecv;
 
 public class ShuffleManager {
@@ -17,11 +18,13 @@ public class ShuffleManager {
 	private int rank;
 	private String hostname;
 	private SendingPool sendingPool;
+	private MapOutputList mapOutputList;
 	
 	public ShuffleManager(int rank){
 		this.rank = rank;
 		this.hostname = Lib.getHostname();
 		this.sendingPool = new SendingPool();
+		this.mapOutputList = new MapOutputList();
 	}
 	
 	public void waitingNonblocking() throws MPIException, IOException{
@@ -45,9 +48,15 @@ public class ShuffleManager {
 					String mapID = split[3];
 					int rID = Integer.parseInt(split[4]);
 					long start = System.currentTimeMillis();
+					System.out.println("rID:" + mapID + " - " + rID);
 					sendingPool.addToWaitList(hostname, appID, mapID, rID, Integer.parseInt(split[1]));
 					System.out.println(rank + " WaitList: " + (System.currentTimeMillis() - start));
-				}				
+				}else{
+					MapOutputObj obj = Lib.readDataFromBuffer(buf, status.getCount(MPI.BYTE));
+					this.mapOutputList.add(obj);
+					System.out.println("Map ID: " + obj.getMapID());
+					Lib.writeToFile(Lib.MAP_OUTPUT_DATA, obj.getData());
+				}
 			}			
 			sendingPool.progress();
 		}

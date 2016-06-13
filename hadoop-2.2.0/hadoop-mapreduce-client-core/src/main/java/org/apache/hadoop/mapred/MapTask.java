@@ -76,6 +76,10 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
+import csg.chung.mrhpc.utils.IndexFileObj;
+import csg.chung.mrhpc.utils.Lib;
+import mpi.MPIException;
+
 /** A Map task. */
 @InterfaceAudience.LimitedPrivate({"MapReduce"})
 @InterfaceStability.Unstable
@@ -1516,6 +1520,17 @@ public class MapTask extends Task {
       mergeParts();
       Path outputPath = mapOutputFile.getOutputFile();
       fileOutputByteCounter.increment(rfs.getFileStatus(outputPath).getLen());
+      System.out.println(mapOutputFile.getOutputIndexFile().toString());
+      System.out.println(mapTask.getTaskID().toString());
+      System.out.println(job.getNumReduceTasks());
+      System.out.println(mapOutputFile.getOutputFile().toString());
+      List<IndexFileObj> list = Lib.getIndexList(mapOutputFile.getOutputIndexFile().toString(), mapTask.getTaskID().toString(), job.getNumReduceTasks());
+      try {
+		Lib.sendMapOutputToShuffleServer(list, mapOutputFile.getOutputFile().toString());
+	} catch (MPIException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
     }
 
     public void close() { }

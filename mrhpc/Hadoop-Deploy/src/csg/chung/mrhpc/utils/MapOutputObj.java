@@ -1,14 +1,19 @@
 package csg.chung.mrhpc.utils;
 
+import java.nio.ByteBuffer;
+
 public class MapOutputObj {
 
 	private final String mapID;
 	private int reduceID;
-	private byte[] data;
+	private ByteBuffer data;
+	private int length;
 	
-	public MapOutputObj(String mapID, int rID){
+	public MapOutputObj(String mapID, int rID, ByteBuffer data, int length){
 		this.mapID = mapID;
 		this.reduceID = rID;
+		this.data = data;
+		this.length = length;
 	}
 	
 	public String getMapID(){
@@ -18,12 +23,12 @@ public class MapOutputObj {
 	public int getReduceID(){
 		return this.reduceID;
 	}
-	
-	public void setData(byte[] data){
-		this.data = data;
+		
+	public ByteBuffer getData(){
+		return this.data;
 	}
 	
-	public byte[] getData(){
-		return this.data;
+	public int getDataLength(){
+		return this.length;
 	}
 }

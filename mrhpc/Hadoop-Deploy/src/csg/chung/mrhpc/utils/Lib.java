@@ -15,9 +15,15 @@ import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.hadoop.fs.Path;
 
 import mpi.MPI;
 import mpi.MPIException;
+import csg.chung.mrhpc.processpool.Configure;
+import csg.chung.mrhpc.processpool.ReadIndex;
 import csg.chung.mrhpc.processpool.SendingPool;
 import csg.chung.mrhpc.utils.Constants;
 
@@ -25,6 +31,97 @@ public class Lib {
 	public static String MAP_OUTPUT_DATA = "/group/gc83/c83014/hadoop-mpi-inmemory/deploy/mapoutput.txt";
 	public static String MAP_OUTPUT_DATA_ORI = "/group/gc83/c83014/hadoop-mpi-inmemory/deploy/mapoutputOri.txt";	
 	public static ByteBuffer bufData = ByteBuffer.allocateDirect(SendingPool.SLOT_BUFFER_SIZE);
+	
+	public static void main(String[] args) throws UnsupportedEncodingException{
+		byte[] data = {11, 12, 13};
+		String mapID = "chung";
+		int rID = 7;
+		String header = Constants.SPLIT_REGEX_HEADER_DATA + mapID + Constants.SPLIT_REGEX + rID;
+		System.out.println(getStringLengthInByte(header));
+		
+		ByteBuffer buf = putHeaderAndDataToBuf(mapID, rID, data);
+		MapOutputObj obj = readDataFromBuffer(buf, 31);
+		obj.getData().position(0);
+		obj.getData().get();
+		System.out.println(obj.getData().get());
+		
+		Path path = new Path("/home/chung/test.txt");
+		System.out.println(path.toString());
+	}
+	
+	public static List<IndexFileObj> getIndexList(String indexPath, String mapID, int numberReducers) throws IOException{
+		List<IndexFileObj> list = new ArrayList<IndexFileObj>();
+		
+		for (int i=0; i < numberReducers; i++){
+			ReadIndex info = new ReadIndex(indexPath, i);
+			long length = info.getLength();
+			long start = info.getStart();
+			
+			IndexFileObj obj = new IndexFileObj(mapID, i, length, start);
+			list.add(obj);
+		}
+		
+		return list;
+	}
+	
+	public static void sendMapOutputToShuffleServer(List<IndexFileObj> list, String path) throws IOException, MPIException{
+		RandomAccessFile file = new RandomAccessFile(path, "r");
+		
+		for (int i=0; i < list.size(); i++){
+			byte[] data = new byte[(int) list.get(i).getLength()];
+			file.seek(list.get(i).getStart());
+			file.read(data);
+			file.close();
+			
+			// Send to shuffle engine
+			int shuffleRank = (MPI.COMM_WORLD.getRank() / Configure.NUMBER_PROCESS_EACH_NODE) * Configure.NUMBER_PROCESS_EACH_NODE + 1; 
+			ByteBuffer buf = putHeaderAndDataToBuf(list.get(i).getMapID(), list.get(i).getRID(), data);
+			int length = getStringLengthInByte(Constants.SPLIT_REGEX_HEADER_DATA + list.get(i).getMapID() + Constants.SPLIT_REGEX + list.get(i).getRID());
+			length += list.get(i).length;
+			
+			MPI.COMM_WORLD.iSend(buf, (int) length, MPI.BYTE, shuffleRank, Constants.EXCHANGE_MSG_TAG);
+		}
+		
+		file.close();
+	}
+	
+	public static ByteBuffer putHeaderAndDataToBuf(String mapID, int rID, byte[] data){
+		ByteBuffer buf = ByteBuffer.allocateDirect(SendingPool.SLOT_BUFFER_SIZE);
+		buf.position(0);
+		buf.put(data);
+
+		String header = Constants.SPLIT_REGEX_HEADER_DATA + mapID + Constants.SPLIT_REGEX + rID;
+		putString(buf, header);	
+		
+		return buf;
+	}
+	
+	public static MapOutputObj readDataFromBuffer(ByteBuffer buf, int length) throws UnsupportedEncodingException{
+		int splitRegexCount = 0;
+		String header = "";
+		
+		for (int i=0; i < Constants.HEADER_MAX_LENGTH; i++){
+			buf.position(length - 2*(i+1));			
+			char c = buf.getChar();
+			header = c + header;
+			if (c == '@'){
+				splitRegexCount++;
+			}else{
+				splitRegexCount = 0;
+			}
+			
+			if (splitRegexCount == Constants.SPLIT_REGEX_HEADER_DATA.length()){
+				String[] split = header.substring(Constants.SPLIT_REGEX_HEADER_DATA.length(), header.length()).split(Constants.SPLIT_REGEX);
+				String mapID = split[0];
+				int rID = Integer.parseInt(split[1]);
+				
+				MapOutputObj obj = new MapOutputObj(mapID, rID, buf, length - getStringLengthInByte(header));
+				return obj;
+			}
+		}
+		
+		return null;
+	}
 	
 	public static void writeToFile(String path, ByteBuffer buf) throws IOException{
 		FileOutputStream out = new FileOutputStream(path, true);
