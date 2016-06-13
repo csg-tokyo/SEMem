@@ -49,7 +49,7 @@ public class SendingPool {
 				long length = info.getLength();
 				long start = info.getStart();
 
-				SendingPoolWait newReading = new SendingPoolWait(path, length, start, client);
+				SendingPoolWait newReading = new SendingPoolWait(mapID, rID, path, length, start, client);
 				synchronized (waiting) {
 					waiting.push(newReading);
 				}

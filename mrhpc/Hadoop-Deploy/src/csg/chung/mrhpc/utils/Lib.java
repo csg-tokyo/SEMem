@@ -115,7 +115,12 @@ public class Lib {
 				String mapID = split[0];
 				int rID = Integer.parseInt(split[1]);
 				
-				MapOutputObj obj = new MapOutputObj(mapID, rID, buf, length - getStringLengthInByte(header));
+				ByteBuffer data = ByteBuffer.allocateDirect(SendingPool.SLOT_BUFFER_SIZE);
+				buf.position(0);
+				data.position(0);
+				data.put(buf);
+				
+				MapOutputObj obj = new MapOutputObj(mapID, rID, data, length - getStringLengthInByte(header));
 				return obj;
 			}
 		}

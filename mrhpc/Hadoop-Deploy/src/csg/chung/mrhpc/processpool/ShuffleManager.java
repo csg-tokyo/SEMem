@@ -18,17 +18,17 @@ public class ShuffleManager {
 	private int rank;
 	private String hostname;
 	private SendingPool sendingPool;
-	private MapOutputList mapOutputList;
+	public static MapOutputList mapOutputList;
 	
 	public ShuffleManager(int rank){
 		this.rank = rank;
 		this.hostname = Lib.getHostname();
 		this.sendingPool = new SendingPool();
-		this.mapOutputList = new MapOutputList();
+		mapOutputList = new MapOutputList();
 	}
 	
 	public void waitingNonblocking() throws MPIException, IOException{
-		ByteBuffer buf = ByteBuffer.allocateDirect(RECV_BUFFER_CAPACITY);
+		ByteBuffer buf = ByteBuffer.allocateDirect(SendingPool.SLOT_BUFFER_SIZE);
 		Request req = null;
 		
 		while (true){
@@ -53,9 +53,9 @@ public class ShuffleManager {
 					System.out.println(rank + " WaitList: " + (System.currentTimeMillis() - start));
 				}else{
 					MapOutputObj obj = Lib.readDataFromBuffer(buf, status.getCount(MPI.BYTE));
-					this.mapOutputList.add(obj);
+					mapOutputList.add(obj);
 					System.out.println("Map ID: " + obj.getMapID());
-					Lib.writeToFile(Lib.MAP_OUTPUT_DATA, obj.getData());
+					//Lib.writeToFile(Lib.MAP_OUTPUT_DATA, obj.getData());
 				}
 			}			
 			sendingPool.progress();
