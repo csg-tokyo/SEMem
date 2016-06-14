@@ -11,6 +11,7 @@ public class SendingPoolWait {
 	
 	public SendingPoolWait(String mapID, int rID, String filePath, long length, long start, int client){
 		this.mapID = mapID;
+		this.rID = rID;
 		this.filePath = filePath;
 		this.length = length;
 		this.start = start;

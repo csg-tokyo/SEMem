@@ -3,10 +3,6 @@ package csg.chung.mrhpc.processpool;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.concurrent.Future;
 
 import mpi.MPI;
 import mpi.MPIException;
@@ -14,12 +10,12 @@ import mpi.Request;
 import mpi.Status;
 
 import csg.chung.mrhpc.utils.Constants;
-import csg.chung.mrhpc.utils.Lib;
 import csg.chung.mrhpc.utils.ResultObj;
 
 public class SendingPoolSlot {
 	private ByteBuffer buffer;
 	private int status;
+	private int id;
 	
 	String filePath;
 	long length;
@@ -30,13 +26,14 @@ public class SendingPoolSlot {
 	long startTime;
 	long originStartTime;
 	
-	ResultObj result = null;
 	Request req = null;
 	AsynchronousFileChannel channel;
 	
-	public SendingPoolSlot(int bufferSize){
+	public SendingPoolSlot(int bufferSize, int id){
 		buffer = ByteBuffer.allocateDirect(bufferSize);
 		status = Constants.FREE;
+		this.id = id;
+		ShuffleManager.result[id] = null;
 	}
 	
 	public boolean checkFree(){
@@ -66,25 +63,20 @@ public class SendingPoolSlot {
 				originStartTime = w.startTime;
 				
 				startTime = System.currentTimeMillis();
-				Path path = Paths.get(filePath);
 				
-				result = new ResultObj();
-				buffer = ShuffleManager.mapOutputList.find(w.mapID, w.rID);
-				result.setDone();
-				//channel = AsynchronousFileChannel.open(path, StandardOpenOption.READ);				
-				//buffer.position(0);
-				//buffer.limit((int)length);
-				//result = channel.read(buffer, start);	
+				ShuffleManager.result[id] = new ResultObj(mapID, rID);
+				buffer = ShuffleManager.mapOutputList.find(mapID, rID);
+				ShuffleManager.result[id].setDone();
 		}
 	}
 	
 	public void progress() throws MPIException, IOException{
-		if (result != null && result.isDone()){
+		if (ShuffleManager.result[id] != null && ShuffleManager.result[id].isDone()){
 			// iSend here
-			//Lib.writeToFile(Lib.MAP_OUTPUT_DATA_ORI, buffer);
+			//System.out.println(MPI.COMM_WORLD.getRank() + ": " + mapID + "-" + rID);
 			System.out.println(MPI.COMM_WORLD.getRank() + " Reading: " + (System.currentTimeMillis() - startTime));
 			req = MPI.COMM_WORLD.iSend(buffer, (int) length, MPI.BYTE, client, Constants.DATA_TAG);
-			result = null;
+			ShuffleManager.result[id] = null;
 		}
 		
 		if (req != null){
@@ -93,9 +85,7 @@ public class SendingPoolSlot {
 			if (sendStatus != null){
 				status = Constants.FREE;
 				ShuffleManager.mapOutputList.remove(mapID, rID);
-				//buffer.clear();
 				req = null;
-				//channel.close();
 				System.out.println(MPI.COMM_WORLD.getRank() + " Sending: " + (System.currentTimeMillis() - startTime));	
 				System.out.println(MPI.COMM_WORLD.getRank() + " All: " + (System.currentTimeMillis() - originStartTime));	
 			}

@@ -3,6 +3,8 @@ package csg.chung.mrhpc.processpool;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+
+import csg.chung.mrhpc.utils.Lib;
 import csg.chung.mrhpc.utils.MapOutputObj;
 
 public class MapOutputList {
@@ -27,7 +29,7 @@ public class MapOutputList {
 	
 	public synchronized ByteBuffer find(String mapID, int rID) {
 		for (int i = 0; i < mapOutputList.size(); i++) {
-			if (mapOutputList.get(i).getMapID().equals(mapID) && mapOutputList.get(i).getReduceID() == rID) {
+			if (Lib.checkStringEqual(mapOutputList.get(i).getMapID(), mapID) && mapOutputList.get(i).getReduceID() == rID) {
 				return mapOutputList.get(i).getData();
 			}
 		}

@@ -71,7 +71,6 @@ public class Lib {
 			byte[] data = new byte[(int) list.get(i).getLength()];
 			file.seek(list.get(i).getStart());
 			file.read(data);
-			file.close();
 			
 			// Send to shuffle engine
 			int shuffleRank = (MPI.COMM_WORLD.getRank() / Configure.NUMBER_PROCESS_EACH_NODE) * Configure.NUMBER_PROCESS_EACH_NODE + 1; 
@@ -79,7 +78,9 @@ public class Lib {
 			int length = getStringLengthInByte(Constants.SPLIT_REGEX_HEADER_DATA + list.get(i).getMapID() + Constants.SPLIT_REGEX + list.get(i).getRID());
 			length += list.get(i).length;
 			
-			MPI.COMM_WORLD.iSend(buf, (int) length, MPI.BYTE, shuffleRank, Constants.EXCHANGE_MSG_TAG);
+			System.out.println("Send: " + length);
+			//MPI.COMM_WORLD.iSend(buf, (int) length, MPI.BYTE, shuffleRank, Constants.EXCHANGE_MSG_TAG);
+			MPI.COMM_WORLD.send(buf, (int) length, MPI.BYTE, shuffleRank, Constants.EXCHANGE_MSG_TAG);
 		}
 		
 		file.close();
@@ -361,6 +362,17 @@ public class Lib {
 		}
 		
 		return data;
+	}
+	
+	public static boolean checkStringEqual(String a, String b){
+		a = a.trim();
+		b = b.trim();
+		
+		if (a.contains(b) || b.contains(a) || a.equals(b)){
+			return true;
+		}
+		
+		return false;
 	}
 	
 	public static int getStringLengthInByte(String s) throws UnsupportedEncodingException{

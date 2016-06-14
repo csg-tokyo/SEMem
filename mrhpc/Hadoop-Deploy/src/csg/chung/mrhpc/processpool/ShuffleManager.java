@@ -10,6 +10,7 @@ import mpi.Status;
 import csg.chung.mrhpc.utils.Constants;
 import csg.chung.mrhpc.utils.Lib;
 import csg.chung.mrhpc.utils.MapOutputObj;
+import csg.chung.mrhpc.utils.ResultObj;
 import csg.chung.mrhpc.utils.SendRecv;
 
 public class ShuffleManager {
@@ -19,6 +20,7 @@ public class ShuffleManager {
 	private String hostname;
 	private SendingPool sendingPool;
 	public static MapOutputList mapOutputList;
+	public static ResultObj result[] = new ResultObj[SendingPool.POOL_SIZE];
 	
 	public ShuffleManager(int rank){
 		this.rank = rank;
@@ -33,31 +35,32 @@ public class ShuffleManager {
 		
 		while (true){
 			if (req == null){
+				buf.clear();
 				req = MPI.COMM_WORLD.iRecv(buf, buf.capacity(), MPI.BYTE, MPI.ANY_SOURCE, Constants.EXCHANGE_MSG_TAG);
 			}
 
 			Status status = req.testStatus();
-			if (status != null){
-				String cmd = Lib.getStringByNumberOfCharacters(buf, status.getCount(MPI.BYTE) / Lib.getUTF_16_Character_Size());
-				buf.clear();
+			if (status != null) {
+				String cmd = Constants.DUMMY_STRING;
+				if (status.getCount(MPI.BYTE) < Constants.CMD_FETCH_MAX_LENGTH){
+					cmd = Lib.getStringByNumberOfCharacters(buf,
+							status.getCount(MPI.BYTE) / Lib.getUTF_16_Character_Size());
+				}
 				req = null;
-				
+
 				String split[] = cmd.split(Constants.SPLIT_REGEX);
 				if (split[0].equals(Constants.CMD_FETCH)) {
 					String appID = split[2];
 					String mapID = split[3];
 					int rID = Integer.parseInt(split[4]);
-					long start = System.currentTimeMillis();
 					System.out.println("rID:" + mapID + " - " + rID);
 					sendingPool.addToWaitList(hostname, appID, mapID, rID, Integer.parseInt(split[1]));
-					System.out.println(rank + " WaitList: " + (System.currentTimeMillis() - start));
-				}else{
+				} else {
 					MapOutputObj obj = Lib.readDataFromBuffer(buf, status.getCount(MPI.BYTE));
 					mapOutputList.add(obj);
-					System.out.println("Map ID: " + obj.getMapID());
-					//Lib.writeToFile(Lib.MAP_OUTPUT_DATA, obj.getData());
+					System.out.println("Map ID: " + obj.getMapID() + "-" + obj.getReduceID());
 				}
-			}			
+			}	
 			sendingPool.progress();
 		}
 	}

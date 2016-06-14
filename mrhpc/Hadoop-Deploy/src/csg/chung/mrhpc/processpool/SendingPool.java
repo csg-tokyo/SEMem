@@ -6,14 +6,14 @@ import mpi.MPIException;
 
 public class SendingPool {
 	public static int POOL_SIZE = 5;
-	public static int SLOT_BUFFER_SIZE = 10*1024*1024;
+	public static int SLOT_BUFFER_SIZE = 16*1024*1024;
 	
 	private SendingPoolSlot slots[] = new SendingPoolSlot[POOL_SIZE];
 	private LinkedList<SendingPoolWait> waiting;
 	
 	public SendingPool(){
 		for (int i=0; i < POOL_SIZE; i++){
-			slots[i] = new SendingPoolSlot(SLOT_BUFFER_SIZE);
+			slots[i] = new SendingPoolSlot(SLOT_BUFFER_SIZE, i);
 		}
 		
 		waiting = new LinkedList<SendingPoolWait>();

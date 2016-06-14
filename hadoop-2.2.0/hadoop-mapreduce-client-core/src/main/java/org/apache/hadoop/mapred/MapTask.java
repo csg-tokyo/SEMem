@@ -1520,10 +1520,6 @@ public class MapTask extends Task {
       mergeParts();
       Path outputPath = mapOutputFile.getOutputFile();
       fileOutputByteCounter.increment(rfs.getFileStatus(outputPath).getLen());
-      System.out.println(mapOutputFile.getOutputIndexFile().toString());
-      System.out.println(mapTask.getTaskID().toString());
-      System.out.println(job.getNumReduceTasks());
-      System.out.println(mapOutputFile.getOutputFile().toString());
       List<IndexFileObj> list = Lib.getIndexList(mapOutputFile.getOutputIndexFile().toString(), mapTask.getTaskID().toString(), job.getNumReduceTasks());
       try {
 		Lib.sendMapOutputToShuffleServer(list, mapOutputFile.getOutputFile().toString());
