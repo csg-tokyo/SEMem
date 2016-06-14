@@ -40,21 +40,9 @@ public class SendingPool {
 		
 		@Override
 		public void run() {
-			try {
-				String indexFilePath = buildPath(hostname, appID, mapID,
-						"file.out.index");
-
-				ReadIndex info = new ReadIndex(indexFilePath, rID);
-				String path = buildPath(hostname, appID, mapID, "file.out");
-				long length = info.getLength();
-				long start = info.getStart();
-
-				SendingPoolWait newReading = new SendingPoolWait(mapID, rID, path, length, start, client);
-				synchronized (waiting) {
-					waiting.push(newReading);
-				}
-			} catch (IOException e) {
-
+			SendingPoolWait newReading = new SendingPoolWait(mapID, rID, client);
+			synchronized (waiting) {
+				waiting.push(newReading);
 			}
 		}
 	}	
@@ -80,12 +68,4 @@ public class SendingPool {
 			}
 		}
 	}
-	
-	public static String buildPath(String hostname, String appID, String mapID, String fileName){
-		String path = csg.chung.mrhpc.processpool.FX10.TMP_FOLDER + hostname + "/nm-local-dir/usercache/" + 
-						csg.chung.mrhpc.processpool.Configure.USERNAME + "/appcache/" + appID +
-						"/output/" + mapID + "/" + fileName;	
-		
-		return path;
-	}	
 }

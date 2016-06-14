@@ -1,7 +1,6 @@
 package csg.chung.mrhpc.processpool;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 
 import mpi.MPI;
@@ -10,16 +9,14 @@ import mpi.Request;
 import mpi.Status;
 
 import csg.chung.mrhpc.utils.Constants;
+import csg.chung.mrhpc.utils.MapOutputObj;
 import csg.chung.mrhpc.utils.ResultObj;
 
 public class SendingPoolSlot {
-	private ByteBuffer buffer;
+	private MapOutputObj curObj;
 	private int status;
 	private int id;
 	
-	String filePath;
-	long length;
-	long start;
 	int client;
 	String mapID;
 	int rID;
@@ -30,7 +27,6 @@ public class SendingPoolSlot {
 	AsynchronousFileChannel channel;
 	
 	public SendingPoolSlot(int bufferSize, int id){
-		buffer = ByteBuffer.allocateDirect(bufferSize);
 		status = Constants.FREE;
 		this.id = id;
 		ShuffleManager.result[id] = null;
@@ -54,9 +50,6 @@ public class SendingPoolSlot {
 		
 		@Override
 		public void run(){
-				filePath = w.filePath;
-				length = w.length;
-				start = w.start;
 				client = w.client;
 				mapID = w.mapID;
 				rID = w.rID;
@@ -65,7 +58,7 @@ public class SendingPoolSlot {
 				startTime = System.currentTimeMillis();
 				
 				ShuffleManager.result[id] = new ResultObj(mapID, rID);
-				buffer = ShuffleManager.mapOutputList.find(mapID, rID);
+				curObj = ShuffleManager.mapOutputList.find(mapID, rID);
 				ShuffleManager.result[id].setDone();
 		}
 	}
@@ -75,7 +68,7 @@ public class SendingPoolSlot {
 			// iSend here
 			//System.out.println(MPI.COMM_WORLD.getRank() + ": " + mapID + "-" + rID);
 			System.out.println(MPI.COMM_WORLD.getRank() + " Reading: " + (System.currentTimeMillis() - startTime));
-			req = MPI.COMM_WORLD.iSend(buffer, (int) length, MPI.BYTE, client, Constants.DATA_TAG);
+			req = MPI.COMM_WORLD.iSend(curObj.getData(), curObj.getDataLength(), MPI.BYTE, client, Constants.DATA_TAG);
 			ShuffleManager.result[id] = null;
 		}
 		
