@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.DataInputBuffer;
 
 import mpi.MPI;
 import mpi.MPIException;
@@ -31,6 +32,7 @@ public class Lib {
 	public static String MAP_OUTPUT_DATA = "/group/gc83/c83014/hadoop-mpi-inmemory/deploy/mapoutput.txt";
 	public static String MAP_OUTPUT_DATA_ORI = "/group/gc83/c83014/hadoop-mpi-inmemory/deploy/mapoutputOri.txt";	
 	public static ByteBuffer bufData = ByteBuffer.allocateDirect(SendingPool.SLOT_BUFFER_SIZE);
+	public static final int EOF_MARKER = -1; // End of File Marker
 	
 	public static void main(String[] args) throws UnsupportedEncodingException{
 		byte[] data = {11, 12, 13};
@@ -64,6 +66,17 @@ public class Lib {
 		return list;
 	}
 	
+	public static void sendMapOutputToShuffleServer(String mapID, int rID, ByteBuffer buf, int length) throws MPIException, UnsupportedEncodingException{
+		String header = Constants.SPLIT_REGEX_HEADER_DATA + mapID + Constants.SPLIT_REGEX + rID;
+		buf.position(length);
+		putString(buf, header);
+		
+		// Send to shuffle engine
+		int shuffleRank = (MPI.COMM_WORLD.getRank() / Configure.NUMBER_PROCESS_EACH_NODE) * Configure.NUMBER_PROCESS_EACH_NODE + 1; 		
+		length += getStringLengthInByte(header);
+		MPI.COMM_WORLD.send(buf, length, MPI.BYTE, shuffleRank, Constants.EXCHANGE_MSG_TAG);
+	}
+	
 	public static void sendMapOutputToShuffleServer(List<IndexFileObj> list, String path) throws IOException, MPIException{
 		RandomAccessFile file = new RandomAccessFile(path, "r");
 		
@@ -78,7 +91,7 @@ public class Lib {
 			int length = getStringLengthInByte(Constants.SPLIT_REGEX_HEADER_DATA + list.get(i).getMapID() + Constants.SPLIT_REGEX + list.get(i).getRID());
 			length += list.get(i).length;
 			
-			System.out.println("Send: " + length);
+			//System.out.println("Send: " + length);
 			//MPI.COMM_WORLD.iSend(buf, (int) length, MPI.BYTE, shuffleRank, Constants.EXCHANGE_MSG_TAG);
 			MPI.COMM_WORLD.send(buf, (int) length, MPI.BYTE, shuffleRank, Constants.EXCHANGE_MSG_TAG);
 		}
@@ -129,12 +142,68 @@ public class Lib {
 		return null;
 	}
 	
-	public static void writeToFile(String path, ByteBuffer buf) throws IOException{
+	public static void writeToFile(String path, ByteBuffer buf, int length) throws IOException{
 		FileOutputStream out = new FileOutputStream(path, true);
-		out.write(Lib.getByteFromByteBuffer(buf));
+		out.write(Lib.getByteFromByteBuffer(buf, length));
 		out.close();
 	}
 
+	public static void resetBuffer(ByteBuffer buf){
+		buf.clear();
+	}
+	
+	public static void closeBuffer(ByteBuffer buf) throws IOException{
+		writeEOF(buf);
+	}	
+	
+	public static void writeKeyAndValueToByteBuffer(ByteBuffer buf, DataInputBuffer key, DataInputBuffer value) throws IOException{
+		int keyLength = key.getLength() - key.getPosition();
+		int valueLength = value.getLength() - value.getPosition();
+
+		writeVInt(buf, keyLength);
+		writeVInt(buf, valueLength);
+		buf.put(key.getData(), key.getPosition(), keyLength);
+		buf.put(value.getData(), value.getPosition(), valueLength);
+	}
+	
+	public static void writeEOF(ByteBuffer buf) throws IOException{
+		writeVInt(buf, EOF_MARKER);
+		writeVInt(buf, EOF_MARKER);
+	}
+	
+	public static void writeVInt(ByteBuffer buf, long i) throws IOException {
+		writeVLong(buf, i);
+	}
+	
+	public static void writeVLong(ByteBuffer buf, long i) throws IOException {
+		if (i >= -112 && i <= 127) {
+			buf.put((byte) i);
+			return;
+		}
+
+		int len = -112;
+		if (i < 0) {
+			i ^= -1L; // take one's complement'
+			len = -120;
+		}
+
+		long tmp = i;
+		while (tmp != 0) {
+			tmp = tmp >> 8;
+			len--;
+		}
+
+		buf.put((byte) len);
+
+		len = (len < -120) ? -(len + 120) : -(len + 112);
+
+		for (int idx = len; idx != 0; idx--) {
+			int shiftbits = (idx - 1) * 8;
+			long mask = 0xFFL << shiftbits;
+			buf.put((byte) ((i & mask) >> shiftbits));
+		}
+	}
+	
 	public static void writeToBuffer(ByteBuffer buf, byte[] data, int off, int len){
 		buf.put(data, off, len);
 	}
@@ -143,11 +212,11 @@ public class Lib {
 		buf.putInt(data);
 	}
 	
-	public static byte[] getByteFromByteBuffer(ByteBuffer data){
-		byte[] result = new byte[data.limit()];
+	public static byte[] getByteFromByteBuffer(ByteBuffer data, int length){
+		byte[] result = new byte[length];
 		
 		data.position(0);
-		for (int i=0; i < data.limit(); i++){
+		for (int i=0; i < length; i++){
 			result[i] = data.get();
 		}
 		

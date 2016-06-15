@@ -1093,7 +1093,9 @@ public class MapTask extends Task {
       }
       checkSpillException();
       bufferRemaining -= METASIZE;
+      System.out.println("No Spilling...:" + job.getNumMapTasks() + "-" + job.getNumReduceTasks());
       if (bufferRemaining <= 0) {
+    	  System.out.println("Spilling...:" + job.getNumMapTasks() + "-" + job.getNumReduceTasks());
         // start spill if the thread is not running and the soft limit has been
         // reached
         spillLock.lock();
@@ -1520,6 +1522,7 @@ public class MapTask extends Task {
       mergeParts();
       Path outputPath = mapOutputFile.getOutputFile();
       fileOutputByteCounter.increment(rfs.getFileStatus(outputPath).getLen());
+      /*
       List<IndexFileObj> list = Lib.getIndexList(mapOutputFile.getOutputIndexFile().toString(), mapTask.getTaskID().toString(), job.getNumReduceTasks());
       try {
 		Lib.sendMapOutputToShuffleServer(list, mapOutputFile.getOutputFile().toString());
@@ -1527,6 +1530,7 @@ public class MapTask extends Task {
 		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
+	*/
     }
 
     public void close() { }
@@ -1622,6 +1626,8 @@ public class MapTask extends Task {
         final IndexRecord rec = new IndexRecord();
         final InMemValBytes value = new InMemValBytes();
         for (int i = 0; i < partitions; ++i) {
+          Lib.resetBuffer(Lib.bufData);        	
+        	
           IFile.Writer<K, V> writer = null;
           try {
             long segmentStart = out.getPos();
@@ -1638,6 +1644,7 @@ public class MapTask extends Task {
                 key.reset(kvbuffer, keystart, valstart - keystart);
                 getVBytesForOffset(kvoff, value);
                 writer.append(key, value);
+                Lib.writeKeyAndValueToByteBuffer(Lib.bufData, key, value);
                 ++spindex;
               }
             } else {
@@ -1659,7 +1666,15 @@ public class MapTask extends Task {
 
             // close the writer
             writer.close();
-
+            Lib.closeBuffer(Lib.bufData);
+            try {
+            	System.out.println(mapTask.getTaskID().toString() + "-" + i + "-" + (int)writer.getRawLength());
+				Lib.sendMapOutputToShuffleServer(mapTask.getTaskID().toString(), i, Lib.bufData, (int)writer.getRawLength());
+			} catch (MPIException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+            
             // record offsets
             rec.startOffset = segmentStart;
             rec.rawLength = writer.getRawLength();
