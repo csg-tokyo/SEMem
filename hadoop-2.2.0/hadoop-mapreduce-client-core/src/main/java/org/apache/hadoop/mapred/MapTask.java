@@ -974,7 +974,7 @@ public class MapTask extends Task {
       //sanity checks
       final float spillper =
         job.getFloat(JobContext.MAP_SORT_SPILL_PERCENT, (float)0.8);
-      final int sortmb = job.getInt(JobContext.IO_SORT_MB, 100);
+      final int sortmb = job.getInt(JobContext.IO_SORT_MB, 1020);
       indexCacheMemoryLimit = job.getInt(JobContext.INDEX_CACHE_MEMORY_LIMIT,
                                          INDEX_CACHE_MEMORY_LIMIT_DEFAULT);
       if (spillper > (float)1.0 || spillper <= (float)0.0) {
@@ -1093,9 +1093,9 @@ public class MapTask extends Task {
       }
       checkSpillException();
       bufferRemaining -= METASIZE;
-      System.out.println("No Spilling...:" + job.getNumMapTasks() + "-" + job.getNumReduceTasks());
+      //System.out.println("No Spilling...:" + job.getNumMapTasks() + "-" + job.getNumReduceTasks());
       if (bufferRemaining <= 0) {
-    	  System.out.println("Spilling...:" + job.getNumMapTasks() + "-" + job.getNumReduceTasks());
+    	  //System.out.println("Spilling...:" + job.getNumMapTasks() + "-" + job.getNumReduceTasks());
         // start spill if the thread is not running and the soft limit has been
         // reached
         spillLock.lock();
@@ -1519,9 +1519,9 @@ public class MapTask extends Task {
       }
       // release sort buffer before the merge
       kvbuffer = null;
-      mergeParts();
-      Path outputPath = mapOutputFile.getOutputFile();
-      fileOutputByteCounter.increment(rfs.getFileStatus(outputPath).getLen());
+      //mergeParts();
+      //Path outputPath = mapOutputFile.getOutputFile();
+      //fileOutputByteCounter.increment(rfs.getFileStatus(outputPath).getLen());
       /*
       List<IndexFileObj> list = Lib.getIndexList(mapOutputFile.getOutputIndexFile().toString(), mapTask.getTaskID().toString(), job.getNumReduceTasks());
       try {
@@ -1608,13 +1608,13 @@ public class MapTask extends Task {
           ? bufend - bufstart
           : (bufvoid - bufend) + bufstart) +
                   partitions * APPROX_HEADER_LENGTH;
-      FSDataOutputStream out = null;
+      //FSDataOutputStream out = null;
       try {
         // create spill file
-        final SpillRecord spillRec = new SpillRecord(partitions);
+        //final SpillRecord spillRec = new SpillRecord(partitions);
         final Path filename =
             mapOutputFile.getSpillFileForWrite(numSpills, size);
-        out = rfs.create(filename);
+        //out = rfs.create(filename);
 
         final int mstart = kvend / NMETA;
         final int mend = 1 + // kvend is a valid record
@@ -1623,16 +1623,16 @@ public class MapTask extends Task {
           : kvmeta.capacity() + kvstart) / NMETA;
         sorter.sort(MapOutputBuffer.this, mstart, mend, reporter);
         int spindex = mstart;
-        final IndexRecord rec = new IndexRecord();
+        //final IndexRecord rec = new IndexRecord();
         final InMemValBytes value = new InMemValBytes();
         for (int i = 0; i < partitions; ++i) {
           Lib.resetBuffer(Lib.bufData);        	
         	
-          IFile.Writer<K, V> writer = null;
+          //IFile.Writer<K, V> writer = null;
           try {
-            long segmentStart = out.getPos();
-            writer = new Writer<K, V>(job, out, keyClass, valClass, codec,
-                                      spilledRecordsCounter);
+            //long segmentStart = out.getPos();
+            //writer = new Writer<K, V>(job, out, keyClass, valClass, codec,
+            //                          spilledRecordsCounter);
             if (combinerRunner == null) {
               // spill directly
               DataInputBuffer key = new DataInputBuffer();
@@ -1643,7 +1643,7 @@ public class MapTask extends Task {
                 int valstart = kvmeta.get(kvoff + VALSTART);
                 key.reset(kvbuffer, keystart, valstart - keystart);
                 getVBytesForOffset(kvoff, value);
-                writer.append(key, value);
+                //writer.append(key, value);
                 Lib.writeKeyAndValueToByteBuffer(Lib.bufData, key, value);
                 ++spindex;
               }
@@ -1657,7 +1657,7 @@ public class MapTask extends Task {
               // Note: we would like to avoid the combiner if we've fewer
               // than some threshold of records for a partition
               if (spstart != spindex) {
-                combineCollector.setWriter(writer);
+                //combineCollector.setWriter(writer);
                 RawKeyValueIterator kvIter =
                   new MRResultIterator(spstart, spindex);
                 combinerRunner.combine(kvIter, combineCollector);
@@ -1665,28 +1665,28 @@ public class MapTask extends Task {
             }
 
             // close the writer
-            writer.close();
+            //writer.close();
             Lib.closeBuffer(Lib.bufData);
             try {
-            	System.out.println(mapTask.getTaskID().toString() + "-" + i + "-" + (int)writer.getRawLength());
-				Lib.sendMapOutputToShuffleServer(mapTask.getTaskID().toString(), i, Lib.bufData, (int)writer.getRawLength());
+            	System.out.println(mapTask.getTaskID().toString() + "-" + i + "-" + Lib.bufDataLength);
+				Lib.sendMapOutputToShuffleServer(mapTask.getTaskID().toString(), i, Lib.bufData, Lib.bufDataLength);
 			} catch (MPIException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
             
             // record offsets
-            rec.startOffset = segmentStart;
-            rec.rawLength = writer.getRawLength();
-            rec.partLength = writer.getCompressedLength();
-            spillRec.putIndex(rec, i);
+            //rec.startOffset = segmentStart;
+            //rec.rawLength = writer.getRawLength();
+            //rec.partLength = writer.getCompressedLength();
+            //spillRec.putIndex(rec, i);
 
-            writer = null;
+            //writer = null;
           } finally {
-            if (null != writer) writer.close();
+            //if (null != writer) writer.close();
           }
         }
-
+        /*
         if (totalIndexCacheMemory >= indexCacheMemoryLimit) {
           // create spill index file
           Path indexFilename =
@@ -1699,9 +1699,10 @@ public class MapTask extends Task {
             spillRec.size() * MAP_OUTPUT_INDEX_RECORD_LENGTH;
         }
         LOG.info("Finished spill " + numSpills);
+        */
         ++numSpills;
       } finally {
-        if (out != null) out.close();
+        //if (out != null) out.close();
       }
     }
 

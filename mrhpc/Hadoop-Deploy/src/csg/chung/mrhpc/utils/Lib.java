@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.DataInputBuffer;
+import org.apache.hadoop.io.WritableUtils;
 
 import mpi.MPI;
 import mpi.MPIException;
@@ -32,6 +33,7 @@ public class Lib {
 	public static String MAP_OUTPUT_DATA = "/group/gc83/c83014/hadoop-mpi-inmemory/deploy/mapoutput.txt";
 	public static String MAP_OUTPUT_DATA_ORI = "/group/gc83/c83014/hadoop-mpi-inmemory/deploy/mapoutputOri.txt";	
 	public static ByteBuffer bufData = ByteBuffer.allocateDirect(SendingPool.SLOT_BUFFER_SIZE);
+	public static int bufDataLength = 0;
 	public static final int EOF_MARKER = -1; // End of File Marker
 	
 	public static void main(String[] args) throws UnsupportedEncodingException{
@@ -150,6 +152,7 @@ public class Lib {
 
 	public static void resetBuffer(ByteBuffer buf){
 		buf.clear();
+		bufDataLength = 0;
 	}
 	
 	public static void closeBuffer(ByteBuffer buf) throws IOException{
@@ -164,11 +167,16 @@ public class Lib {
 		writeVInt(buf, valueLength);
 		buf.put(key.getData(), key.getPosition(), keyLength);
 		buf.put(value.getData(), value.getPosition(), valueLength);
+		
+		bufDataLength += keyLength + valueLength + 
+                WritableUtils.getVIntSize(keyLength) + 
+                WritableUtils.getVIntSize(valueLength);
 	}
 	
 	public static void writeEOF(ByteBuffer buf) throws IOException{
 		writeVInt(buf, EOF_MARKER);
 		writeVInt(buf, EOF_MARKER);
+		bufDataLength += 2 * WritableUtils.getVIntSize(EOF_MARKER);
 	}
 	
 	public static void writeVInt(ByteBuffer buf, long i) throws IOException {
