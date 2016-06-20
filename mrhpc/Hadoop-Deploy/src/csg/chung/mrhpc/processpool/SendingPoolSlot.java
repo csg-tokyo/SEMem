@@ -68,8 +68,12 @@ public class SendingPoolSlot {
 			// iSend here
 			//System.out.println(MPI.COMM_WORLD.getRank() + ": " + mapID + "-" + rID);
 			//System.out.println(MPI.COMM_WORLD.getRank() + " Reading: " + (System.currentTimeMillis() - startTime));
-			req = MPI.COMM_WORLD.iSend(curObj.getData(), curObj.getDataLength(), MPI.BYTE, client, Constants.DATA_TAG);
-			ShuffleManager.result[id] = null;
+			if (curObj != null){
+				req = MPI.COMM_WORLD.iSend(curObj.getData(), curObj.getDataLength(), MPI.BYTE, client, Constants.DATA_TAG);
+				ShuffleManager.result[id] = null;
+			}else{
+				curObj = ShuffleManager.mapOutputList.find(mapID, rID);
+			}
 		}
 		
 		if (req != null){
