@@ -53,12 +53,12 @@ public class ShuffleManager {
 					String appID = split[2];
 					String mapID = split[3];
 					int rID = Integer.parseInt(split[4]);
-					System.out.println("rID:" + mapID + " - " + rID);
+					//System.out.println("rID:" + mapID + " - " + rID);
 					sendingPool.addToWaitList(hostname, appID, mapID, rID, Integer.parseInt(split[1]));
 				} else {
 					MapOutputObj obj = Lib.readDataFromBuffer(buf, status.getCount(MPI.BYTE));
 					mapOutputList.add(obj);
-					System.out.println("Map ID: " + obj.getMapID() + "-" + obj.getReduceID());
+					//System.out.println("Map ID: " + obj.getMapID() + "-" + obj.getReduceID());
 				}
 			}	
 			sendingPool.progress();

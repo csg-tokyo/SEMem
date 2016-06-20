@@ -1093,9 +1093,7 @@ public class MapTask extends Task {
       }
       checkSpillException();
       bufferRemaining -= METASIZE;
-      //System.out.println("No Spilling...:" + job.getNumMapTasks() + "-" + job.getNumReduceTasks());
       if (bufferRemaining <= 0) {
-    	  //System.out.println("Spilling...:" + job.getNumMapTasks() + "-" + job.getNumReduceTasks());
         // start spill if the thread is not running and the soft limit has been
         // reached
         spillLock.lock();
@@ -1604,16 +1602,16 @@ public class MapTask extends Task {
                                        InterruptedException {
       //approximate the length of the output file to be the length of the
       //buffer + header lengths for the partitions
-      final long size = (bufend >= bufstart
-          ? bufend - bufstart
-          : (bufvoid - bufend) + bufstart) +
-                  partitions * APPROX_HEADER_LENGTH;
+     // final long size = (bufend >= bufstart
+     //     ? bufend - bufstart
+     //     : (bufvoid - bufend) + bufstart) +
+     //             partitions * APPROX_HEADER_LENGTH;
       //FSDataOutputStream out = null;
       try {
         // create spill file
         //final SpillRecord spillRec = new SpillRecord(partitions);
-        final Path filename =
-            mapOutputFile.getSpillFileForWrite(numSpills, size);
+        //final Path filename =
+        //    mapOutputFile.getSpillFileForWrite(numSpills, size);
         //out = rfs.create(filename);
 
         final int mstart = kvend / NMETA;
@@ -1668,7 +1666,6 @@ public class MapTask extends Task {
             //writer.close();
             Lib.closeBuffer(Lib.bufData);
             try {
-            	System.out.println(mapTask.getTaskID().toString() + "-" + i + "-" + Lib.bufDataLength);
 				Lib.sendMapOutputToShuffleServer(mapTask.getTaskID().toString(), i, Lib.bufData, Lib.bufDataLength);
 			} catch (MPIException e) {
 				// TODO Auto-generated catch block

@@ -20,8 +20,8 @@ public class SendingPoolSlot {
 	int client;
 	String mapID;
 	int rID;
-	long startTime;
-	long originStartTime;
+	//long startTime;
+	//long originStartTime;
 	
 	Request req = null;
 	AsynchronousFileChannel channel;
@@ -53,9 +53,9 @@ public class SendingPoolSlot {
 				client = w.client;
 				mapID = w.mapID;
 				rID = w.rID;
-				originStartTime = w.startTime;
+				//originStartTime = w.startTime;
 				
-				startTime = System.currentTimeMillis();
+				//startTime = System.currentTimeMillis();
 				
 				ShuffleManager.result[id] = new ResultObj(mapID, rID);
 				curObj = ShuffleManager.mapOutputList.find(mapID, rID);
@@ -67,7 +67,7 @@ public class SendingPoolSlot {
 		if (ShuffleManager.result[id] != null && ShuffleManager.result[id].isDone()){
 			// iSend here
 			//System.out.println(MPI.COMM_WORLD.getRank() + ": " + mapID + "-" + rID);
-			System.out.println(MPI.COMM_WORLD.getRank() + " Reading: " + (System.currentTimeMillis() - startTime));
+			//System.out.println(MPI.COMM_WORLD.getRank() + " Reading: " + (System.currentTimeMillis() - startTime));
 			req = MPI.COMM_WORLD.iSend(curObj.getData(), curObj.getDataLength(), MPI.BYTE, client, Constants.DATA_TAG);
 			ShuffleManager.result[id] = null;
 		}
@@ -79,8 +79,8 @@ public class SendingPoolSlot {
 				status = Constants.FREE;
 				ShuffleManager.mapOutputList.remove(mapID, rID);
 				req = null;
-				System.out.println(MPI.COMM_WORLD.getRank() + " Sending: " + (System.currentTimeMillis() - startTime));	
-				System.out.println(MPI.COMM_WORLD.getRank() + " All: " + (System.currentTimeMillis() - originStartTime));	
+				//System.out.println(MPI.COMM_WORLD.getRank() + " Sending: " + (System.currentTimeMillis() - startTime));	
+				//System.out.println(MPI.COMM_WORLD.getRank() + " All: " + (System.currentTimeMillis() - originStartTime));	
 			}
 		}
 	}
