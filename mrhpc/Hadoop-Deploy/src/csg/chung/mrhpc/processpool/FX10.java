@@ -22,7 +22,7 @@ public class FX10 {
 	public FX10() throws IOException{
 		try {
 			rank = MPI.COMM_WORLD.getRank();
-			size = MPI.COMM_WORLD.getSize() - Configure.NUMBER_PROCESS_EACH_NODE;
+			size = MPI.COMM_WORLD.getSize() - Configure.NUMBER_PROCESS_EACH_NODE - Configure.NUMBER_OF_EXTRA_NODE;
 			
 			if (rank >= size){
 				if (rank == size){
@@ -30,6 +30,13 @@ public class FX10 {
 					 Thread.sleep(120*1000);
 					 Lib.runCommand(Configure.MAPREDUCE_JOB);
 					 System.out.println("Running MapReduce jobs");					
+				}else{
+					// Run Extra node Manager
+					if (rank == MPI.COMM_WORLD.getSize() - 1){
+						
+					}else{
+						
+					}
 				}
 			}else{
 				// Print node info

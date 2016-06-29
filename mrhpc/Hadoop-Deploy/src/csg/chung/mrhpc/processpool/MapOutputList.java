@@ -13,6 +13,10 @@ public class MapOutputList {
 		this.mapOutputList = new ArrayList<MapOutputObj>();		
 	}
 	
+	public synchronized boolean checkFull(){
+		return mapOutputList.size()*SendingPool.SLOT_BUFFER_SIZE < Configure.MAXIMUM_DIRECT_MEMORY ? false : true;
+	}
+	
 	public synchronized void add(MapOutputObj obj){
 		mapOutputList.add(obj);
 	}	

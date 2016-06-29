@@ -974,7 +974,7 @@ public class MapTask extends Task {
       //sanity checks
       final float spillper =
         job.getFloat(JobContext.MAP_SORT_SPILL_PERCENT, (float)0.8);
-      final int sortmb = job.getInt(JobContext.IO_SORT_MB, 1020);
+      final int sortmb = 128;//job.getInt(JobContext.IO_SORT_MB, 1020);
       indexCacheMemoryLimit = job.getInt(JobContext.INDEX_CACHE_MEMORY_LIMIT,
                                          INDEX_CACHE_MEMORY_LIMIT_DEFAULT);
       if (spillper > (float)1.0 || spillper <= (float)0.0) {

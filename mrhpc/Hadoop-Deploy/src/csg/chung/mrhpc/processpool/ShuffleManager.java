@@ -55,7 +55,20 @@ public class ShuffleManager {
 					int rID = Integer.parseInt(split[4]);
 					//System.out.println("rID:" + mapID + " - " + rID);
 					sendingPool.addToWaitList(hostname, appID, mapID, rID, Integer.parseInt(split[1]));
-				} else {
+				} 
+				if (split[0].equals(Constants.CMD_CHECK_SPACE)){
+					String msg = Constants.AVAILABLE + "";
+					if (mapOutputList.checkFull()){
+						msg = Constants.FULL + "";
+					}
+					int client = status.getSource();
+					
+					ByteBuffer bufSend = ByteBuffer.allocateDirect(ShuffleManager.RECV_BUFFER_CAPACITY);
+					bufSend.position(0);
+					Lib.putString(bufSend, msg);
+					MPI.COMM_WORLD.iSend(bufSend, Lib.getStringLengthInByte(msg), MPI.BYTE, client, Constants.EXCHANGE_MSG_TAG);			
+				}
+				else {
 					MapOutputObj obj = Lib.readDataFromBuffer(buf, status.getCount(MPI.BYTE));
 					mapOutputList.add(obj);
 					//System.out.println("Map ID: " + obj.getMapID() + "-" + obj.getReduceID());
