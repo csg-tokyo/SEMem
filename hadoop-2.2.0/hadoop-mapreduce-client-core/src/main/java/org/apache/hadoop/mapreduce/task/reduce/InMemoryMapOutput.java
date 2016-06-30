@@ -168,6 +168,19 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
 		    	csg.chung.mrhpc.processpool.Configure.setFX10();
 		    	csg.chung.mrhpc.utils.Lib.appendToFile(csg.chung.mrhpc.processpool.Configure.ANALYSIS_LOG + ConverterUtils.toContainerId(System.getenv(Environment.CONTAINER_ID.name())), logDate1);	                    												
 				
+		    	// Check real data or extra node info
+				String cmd = Constants.DUMMY_STRING;
+				if (status.getCount(MPI.BYTE) < Constants.CMD_FETCH_MAX_LENGTH){
+					cmd = Lib.getStringByNumberOfCharacters(bufData,
+							status.getCount(MPI.BYTE) / Lib.getUTF_16_Character_Size());
+				}		    	
+				String split[] = cmd.split(Constants.SPLIT_REGEX);				
+				if (split[0].equals(Constants.CMD_NOTIFY_EXTRA_NODE)){
+					int extraNodeRank = Integer.parseInt(split[1]);
+					MPI.COMM_WORLD.send(bufCMD, Lib.getStringLengthInByte(msg), MPI.BYTE, extraNodeRank, Constants.EXCHANGE_MSG_TAG);									
+					status = MPI.COMM_WORLD.recv(bufData, bufData.capacity(), MPI.BYTE, extraNodeRank, Constants.DATA_TAG);				
+				}
+		    	
 				byte recv[] = new byte[status.getCount(MPI.BYTE)];
 				bufData.position(0);
 				for (int i=0; i < recv.length; i++){

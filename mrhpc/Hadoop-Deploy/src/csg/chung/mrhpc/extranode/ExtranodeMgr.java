@@ -41,10 +41,10 @@ public class ExtranodeMgr {
 				req = null;
 
 				String split[] = cmd.split(Constants.SPLIT_REGEX);
-				if (split[0].equals(Constants.CMD_CHECK_EXTRA_NODE)) {
+				if (split[0].equals(Constants.CMD_CHECK_SPACE)) {
 					int client = status.getSource();
 					int nodeData = findExtraNode();
-					String msg = Constants.CMD_CHECK_EXTRA_NODE + Constants.SPLIT_REGEX + nodeData;
+					String msg = Constants.CMD_CHECK_SPACE + Constants.SPLIT_REGEX + nodeData;
 					
 					ByteBuffer bufSend = ByteBuffer.allocateDirect(ShuffleManager.RECV_BUFFER_CAPACITY);
 					bufSend.position(0);

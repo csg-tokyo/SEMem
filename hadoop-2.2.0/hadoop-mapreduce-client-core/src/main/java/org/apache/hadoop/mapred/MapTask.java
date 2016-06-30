@@ -76,8 +76,11 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 
+import csg.chung.mrhpc.processpool.Configure;
+import csg.chung.mrhpc.utils.Constants;
 import csg.chung.mrhpc.utils.IndexFileObj;
 import csg.chung.mrhpc.utils.Lib;
+import mpi.MPI;
 import mpi.MPIException;
 
 /** A Map task. */
@@ -1666,7 +1669,22 @@ public class MapTask extends Task {
             //writer.close();
             Lib.closeBuffer(Lib.bufData);
             try {
-				Lib.sendMapOutputToShuffleServer(mapTask.getTaskID().toString(), i, Lib.bufData, Lib.bufDataLength);
+            	// Check available
+        		int shuffleRank = Lib.getShuffleServerRank(); 				            	
+            	int check = Lib.checkSendMapOutput(shuffleRank);
+            	if (check == Constants.AVAILABLE){           	
+            		// Send to shuffle server
+            		Lib.sendMapOutputToShuffleServer(mapTask.getTaskID().toString(), i, Lib.bufData, Lib.bufDataLength, shuffleRank);
+            	}else{
+            		int extraNodeMgrRank = Lib.getExtraNodeMgrRank();
+            		int checkExtraRank = Lib.checkSendMapOutput(extraNodeMgrRank);
+            		// Send to Extra node
+            		Lib.sendMapOutputToShuffleServer(mapTask.getTaskID().toString(), i, Lib.bufData, Lib.bufDataLength, checkExtraRank);
+            		
+            		// Notify the shuffle server the location of mapOutput
+            		String msg = Constants.CMD_NOTIFY_EXTRA_NODE + Constants.SPLIT_REGEX + mapTask.getTaskID().toString() + Constants.SPLIT_REGEX + i + Constants.SPLIT_REGEX + checkExtraRank;
+            		Lib.sendMsgToServer(msg, shuffleRank);
+            	}
 			} catch (MPIException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

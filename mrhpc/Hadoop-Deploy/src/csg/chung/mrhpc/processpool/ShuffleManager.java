@@ -68,6 +68,10 @@ public class ShuffleManager {
 					Lib.putString(bufSend, msg);
 					MPI.COMM_WORLD.iSend(bufSend, Lib.getStringLengthInByte(msg), MPI.BYTE, client, Constants.EXCHANGE_MSG_TAG);			
 				}
+				if (split[0].equals(Constants.CMD_NOTIFY_EXTRA_NODE)){
+					MapOutputObj obj = Lib.storeExtraNodeInfo(split[1], Integer.parseInt(split[2]), Integer.parseInt(split[3]));
+					mapOutputList.add(obj);
+				}
 				else {
 					MapOutputObj obj = Lib.readDataFromBuffer(buf, status.getCount(MPI.BYTE));
 					mapOutputList.add(obj);

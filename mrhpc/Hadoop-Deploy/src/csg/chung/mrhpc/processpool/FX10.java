@@ -7,6 +7,8 @@ import java.net.InetAddress;
 import mpi.MPI;
 import mpi.MPIException;
 import csg.chung.mrhpc.utils.Lib;
+import csg.chung.mrhpc.extranode.ExtranodeData;
+import csg.chung.mrhpc.extranode.ExtranodeMgr;
 import csg.chung.mrhpc.utils.Constants;
 
 public class FX10 {
@@ -33,9 +35,11 @@ public class FX10 {
 				}else{
 					// Run Extra node Manager
 					if (rank == MPI.COMM_WORLD.getSize() - 1){
-						
+						ExtranodeMgr extraNodeMgr = new ExtranodeMgr();
+						extraNodeMgr.waitingNonblocking();
 					}else{
-						
+						ExtranodeData extraNodeData = new ExtranodeData(rank);
+						extraNodeData.waitingNonblocking();
 					}
 				}
 			}else{

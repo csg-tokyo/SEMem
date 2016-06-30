@@ -24,9 +24,11 @@ import org.apache.hadoop.io.WritableUtils;
 
 import mpi.MPI;
 import mpi.MPIException;
+import mpi.Status;
 import csg.chung.mrhpc.processpool.Configure;
 import csg.chung.mrhpc.processpool.ReadIndex;
 import csg.chung.mrhpc.processpool.SendingPool;
+import csg.chung.mrhpc.processpool.ShuffleManager;
 import csg.chung.mrhpc.utils.Constants;
 
 public class Lib {
@@ -68,15 +70,48 @@ public class Lib {
 		return list;
 	}
 	
-	public static void sendMapOutputToShuffleServer(String mapID, int rID, ByteBuffer buf, int length) throws MPIException, UnsupportedEncodingException{
+	public static int getExtraNodeMgrRank() throws MPIException{
+		int rank = MPI.COMM_WORLD.getSize() - 1;
+		
+		return rank;
+	}
+	
+	public static int getShuffleServerRank() throws MPIException{
+		return (MPI.COMM_WORLD.getRank() / Configure.NUMBER_PROCESS_EACH_NODE) * Configure.NUMBER_PROCESS_EACH_NODE + 1;
+	}
+	
+	public static void sendMsgToServer(String msg, int server) throws UnsupportedEncodingException, MPIException{
+		ByteBuffer bufSend = ByteBuffer.allocateDirect(ShuffleManager.RECV_BUFFER_CAPACITY);
+		bufSend.position(0);
+		Lib.putString(bufSend, msg);		
+		MPI.COMM_WORLD.send(bufSend, Lib.getStringLengthInByte(msg), MPI.BYTE, server, Constants.EXCHANGE_MSG_TAG);						
+	}
+	
+	public static int checkSendMapOutput(int server) throws MPIException, UnsupportedEncodingException{
+		String msg = Constants.CMD_CHECK_SPACE;
+		ByteBuffer bufSend = ByteBuffer.allocateDirect(ShuffleManager.RECV_BUFFER_CAPACITY);
+		bufSend.position(0);
+		Lib.putString(bufSend, msg);
+		MPI.COMM_WORLD.send(bufSend, Lib.getStringLengthInByte(msg), MPI.BYTE, server, Constants.EXCHANGE_MSG_TAG);				
+		
+		ByteBuffer bufRecv = ByteBuffer.allocateDirect(ShuffleManager.RECV_BUFFER_CAPACITY);
+		Status status = MPI.COMM_WORLD.recv(bufRecv, bufRecv.capacity(), MPI.BYTE, server, Constants.EXCHANGE_MSG_TAG);
+		
+		String cmd = Lib.getStringByNumberOfCharacters(bufRecv,
+				status.getCount(MPI.BYTE) / Lib.getUTF_16_Character_Size());
+		
+		String split[] = cmd.split(Constants.SPLIT_REGEX);
+		return Integer.parseInt(split[0]);
+	}
+	
+	public static void sendMapOutputToShuffleServer(String mapID, int rID, ByteBuffer buf, int length, int serverRank) throws MPIException, UnsupportedEncodingException{
 		String header = Constants.SPLIT_REGEX_HEADER_DATA + mapID + Constants.SPLIT_REGEX + rID;
 		buf.position(length);
 		putString(buf, header);
 		
 		// Send to shuffle engine
-		int shuffleRank = (MPI.COMM_WORLD.getRank() / Configure.NUMBER_PROCESS_EACH_NODE) * Configure.NUMBER_PROCESS_EACH_NODE + 1; 		
 		length += getStringLengthInByte(header);
-		MPI.COMM_WORLD.send(buf, length, MPI.BYTE, shuffleRank, Constants.EXCHANGE_MSG_TAG);
+		MPI.COMM_WORLD.send(buf, length, MPI.BYTE, serverRank, Constants.EXCHANGE_MSG_TAG);
 	}
 	
 	public static void sendMapOutputToShuffleServer(List<IndexFileObj> list, String path) throws IOException, MPIException{
@@ -110,6 +145,17 @@ public class Lib {
 		putString(buf, header);	
 		
 		return buf;
+	}
+	
+	public static MapOutputObj storeExtraNodeInfo(String mapID, int rID, int extraNodeRank) throws UnsupportedEncodingException{
+		ByteBuffer data = ByteBuffer.allocateDirect(ShuffleManager.RECV_BUFFER_CAPACITY);
+		data.position(0);
+		
+		String msg = Constants.CMD_NOTIFY_EXTRA_NODE + Constants.SPLIT_REGEX + extraNodeRank;
+		Lib.putString(data, msg);
+		
+		MapOutputObj obj = new MapOutputObj(mapID, rID, data, Lib.getStringLengthInByte(msg));
+		return obj;
 	}
 	
 	public static MapOutputObj readDataFromBuffer(ByteBuffer buf, int length) throws UnsupportedEncodingException{

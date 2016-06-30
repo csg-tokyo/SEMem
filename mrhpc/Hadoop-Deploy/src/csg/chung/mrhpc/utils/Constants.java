@@ -23,6 +23,7 @@ public class Constants {
 	public static final String CMD_FETCH_LIST		= "3";
 	public static final String CMD_UPLOAD_MAPOUTPUT	= "4";
 	public static final String CMD_CHECK_SPACE		= "5";
+	public static final String CMD_NOTIFY_EXTRA_NODE= "6";	
 		
 	public final static String SPLIT_REGEX = "@@@";	
 	public final static String SPLIT_REGEX_HEADER_DATA = "@@@@@";	
@@ -36,7 +37,4 @@ public class Constants {
 	
 	public static final int FULL				= 1;	
 	public static final int AVAILABLE			= 0;
-	
-	public static final String CMD_CHECK_EXTRA_NODE = "0";
-	public static final String CMD_SEND_STATUS 		= "1";	
 }
