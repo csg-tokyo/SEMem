@@ -14,6 +14,7 @@ import csg.chung.mrhpc.utils.ResultObj;
 import csg.chung.mrhpc.utils.SendRecv;
 
 public class ShuffleManager {
+	public String ID = "ShuffleManager";
 	public static int RECV_BUFFER_CAPACITY = 4*1024;
 	
 	private int rank;
@@ -53,13 +54,14 @@ public class ShuffleManager {
 					String appID = split[2];
 					String mapID = split[3];
 					int rID = Integer.parseInt(split[4]);
-					//System.out.println("rID:" + mapID + " - " + rID);
+					System.out.println(ID + ": " + "rID:" + mapID + " - " + rID);
 					sendingPool.addToWaitList(hostname, appID, mapID, rID, Integer.parseInt(split[1]));
-				} 
+				}else
 				if (split[0].equals(Constants.CMD_CHECK_SPACE)){
-					String msg = Constants.AVAILABLE + "";
+					//String msg = Constants.CMD_CHECK_SPACE + Constants.SPLIT_REGEX + Constants.AVAILABLE;
+					String msg = Constants.CMD_CHECK_SPACE + Constants.SPLIT_REGEX + Constants.FULL;
 					if (mapOutputList.checkFull()){
-						msg = Constants.FULL + "";
+						msg = Constants.CMD_CHECK_SPACE + Constants.SPLIT_REGEX + Constants.FULL;
 					}
 					int client = status.getSource();
 					
@@ -67,15 +69,16 @@ public class ShuffleManager {
 					bufSend.position(0);
 					Lib.putString(bufSend, msg);
 					MPI.COMM_WORLD.iSend(bufSend, Lib.getStringLengthInByte(msg), MPI.BYTE, client, Constants.EXCHANGE_MSG_TAG);			
-				}
+				}else
 				if (split[0].equals(Constants.CMD_NOTIFY_EXTRA_NODE)){
 					MapOutputObj obj = Lib.storeExtraNodeInfo(split[1], Integer.parseInt(split[2]), Integer.parseInt(split[3]));
 					mapOutputList.add(obj);
+					System.out.println(ID + ": " + "Notify: " + cmd);
 				}
 				else {
 					MapOutputObj obj = Lib.readDataFromBuffer(buf, status.getCount(MPI.BYTE));
 					mapOutputList.add(obj);
-					//System.out.println("Map ID: " + obj.getMapID() + "-" + obj.getReduceID());
+					System.out.println(ID + ": " + "Store Map ID: " + obj.getMapID() + "-" + obj.getReduceID());
 				}
 			}	
 			sendingPool.progress();

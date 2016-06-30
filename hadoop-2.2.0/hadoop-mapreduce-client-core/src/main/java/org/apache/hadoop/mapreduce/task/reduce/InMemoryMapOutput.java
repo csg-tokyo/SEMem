@@ -174,6 +174,7 @@ class InMemoryMapOutput<K, V> extends MapOutput<K, V> {
 					cmd = Lib.getStringByNumberOfCharacters(bufData,
 							status.getCount(MPI.BYTE) / Lib.getUTF_16_Character_Size());
 				}		    	
+				System.out.println(cmd);
 				String split[] = cmd.split(Constants.SPLIT_REGEX);				
 				if (split[0].equals(Constants.CMD_NOTIFY_EXTRA_NODE)){
 					int extraNodeRank = Integer.parseInt(split[1]);

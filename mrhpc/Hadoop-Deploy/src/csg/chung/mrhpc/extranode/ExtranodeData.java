@@ -6,7 +6,7 @@ public class ExtranodeData extends ShuffleManager{
 
 	public ExtranodeData(int rank) {
 		super(rank);
-		// TODO Auto-generated constructor stub
+		this.ID = "ExtranodeData";
 	}
 
 }

@@ -99,9 +99,9 @@ public class Lib {
 		
 		String cmd = Lib.getStringByNumberOfCharacters(bufRecv,
 				status.getCount(MPI.BYTE) / Lib.getUTF_16_Character_Size());
-		
+
 		String split[] = cmd.split(Constants.SPLIT_REGEX);
-		return Integer.parseInt(split[0]);
+		return Integer.parseInt(split[1]);
 	}
 	
 	public static void sendMapOutputToShuffleServer(String mapID, int rID, ByteBuffer buf, int length, int serverRank) throws MPIException, UnsupportedEncodingException{

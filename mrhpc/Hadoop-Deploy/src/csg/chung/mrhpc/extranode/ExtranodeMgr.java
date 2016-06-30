@@ -16,12 +16,15 @@ public class ExtranodeMgr {
 	// Store status of each extra node
 	private int extraNodeDataStatus[];
 	private int roundRobinCount = 0;
+	private int startRankOfExtraNode;
 	
-	public ExtranodeMgr(){
+	public ExtranodeMgr() throws MPIException{
 		this.extraNodeDataStatus = new int[Configure.NUMBER_OF_EXTRA_NODE - 1];
 		for (int i=0; i < extraNodeDataStatus.length; i++){
 			this.extraNodeDataStatus[i] = Constants.AVAILABLE;
 		}
+		
+		this.startRankOfExtraNode = MPI.COMM_WORLD.getSize() - Configure.NUMBER_OF_EXTRA_NODE;
 	}
 	
 	public void waitingNonblocking() throws MPIException, IOException{
@@ -58,7 +61,7 @@ public class ExtranodeMgr {
 	public int findExtraNode(){
 		while (true){
 			if (extraNodeDataStatus[roundRobinCount] == Constants.AVAILABLE){
-				return roundRobinCount;
+				return startRankOfExtraNode + roundRobinCount;
 			}else{
 				roundRobinCount = (roundRobinCount + 1) % (Configure.NUMBER_OF_EXTRA_NODE - 1);
 			}
