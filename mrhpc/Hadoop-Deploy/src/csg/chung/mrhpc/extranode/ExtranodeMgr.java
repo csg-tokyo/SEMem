@@ -15,7 +15,7 @@ import mpi.Status;
 public class ExtranodeMgr {
 	// Store status of each extra node
 	private int extraNodeDataStatus[];
-	private int roundRobinCount = 0;
+	private int roundRobinCount = -1;
 	private int startRankOfExtraNode;
 	
 	public ExtranodeMgr() throws MPIException{
@@ -60,10 +60,9 @@ public class ExtranodeMgr {
 	
 	public int findExtraNode(){
 		while (true){
+			roundRobinCount = (roundRobinCount + 1) % (Configure.NUMBER_OF_EXTRA_NODE - 1);
 			if (extraNodeDataStatus[roundRobinCount] == Constants.AVAILABLE){
 				return startRankOfExtraNode + roundRobinCount;
-			}else{
-				roundRobinCount = (roundRobinCount + 1) % (Configure.NUMBER_OF_EXTRA_NODE - 1);
 			}
 		}
 	}
