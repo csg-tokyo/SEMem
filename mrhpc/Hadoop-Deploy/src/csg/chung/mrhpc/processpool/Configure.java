@@ -43,9 +43,9 @@ public class Configure {
 	
 	public static int NUMBER_PROCESS_EACH_NODE 	= 7;
 	
-	public static int NUMBER_OF_EXTRA_NODE = 3;
+	public static int NUMBER_OF_EXTRA_NODE = 10;
 	
-	public static int MAXIMUM_DIRECT_MEMORY = 128*1024*1024;
+	public static int MAXIMUM_DIRECT_MEMORY = 0*1024*1024;
 	
 	/**
 	 * Lock file

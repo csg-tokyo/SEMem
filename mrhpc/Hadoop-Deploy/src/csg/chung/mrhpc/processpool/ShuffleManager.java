@@ -58,8 +58,8 @@ public class ShuffleManager {
 					sendingPool.addToWaitList(hostname, appID, mapID, rID, Integer.parseInt(split[1]));
 				}else
 				if (split[0].equals(Constants.CMD_CHECK_SPACE)){
-					//String msg = Constants.CMD_CHECK_SPACE + Constants.SPLIT_REGEX + Constants.AVAILABLE;
-					String msg = Constants.CMD_CHECK_SPACE + Constants.SPLIT_REGEX + Constants.FULL;
+					String msg = Constants.CMD_CHECK_SPACE + Constants.SPLIT_REGEX + Constants.AVAILABLE;
+					//String msg = Constants.CMD_CHECK_SPACE + Constants.SPLIT_REGEX + Constants.FULL;
 					if (mapOutputList.checkFull()){
 						msg = Constants.CMD_CHECK_SPACE + Constants.SPLIT_REGEX + Constants.FULL;
 					}
