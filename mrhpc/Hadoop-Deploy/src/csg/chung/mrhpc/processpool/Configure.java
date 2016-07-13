@@ -41,9 +41,9 @@ public class Configure {
 	 */
 	public static String ELAPSED_TIME				= "00:30:00";	
 	
-	public static int NUMBER_PROCESS_EACH_NODE 	= 7;
+	public static int NUMBER_PROCESS_EACH_NODE 	= 4;
 	
-	public static int NUMBER_OF_EXTRA_NODE = 10;
+	public static int NUMBER_OF_EXTRA_NODE = 2;
 	
 	public static int MAXIMUM_DIRECT_MEMORY = 0*1024*1024;
 	
@@ -53,11 +53,11 @@ public class Configure {
 	public static String LOCK_FILE_PATH = DEPLOY_FOLDER + "/hadoop/lock/";
 	
 	public static void setTsubame(){
-		HADOOP_TAR_GZ_FILE 		= "/work1/t2gcrest-masuhara/chung/hadoop-mpi/deploy/hadoop.tar.gz";			
-		DEPLOY_FOLDER 			= "/work1/t2gcrest-masuhara/chung/hadoop-mpi/deploy";	
-		DATA_FOLDER				= "/work1/t2gcrest-masuhara/chung/hdfs";
-		JAVA_HOME				= "/home/usr9/14ITA182/.local/jdk1.7.0_65";	
-		USERNAME				= "14ITA182";		
+		HADOOP_TAR_GZ_FILE 		= "/work1/t2g-16IAI/chung/hadoop-mpi-inmemory/deploy/hadoop.tar.gz";			
+		DEPLOY_FOLDER 			= "/work1/t2g-16IAI/chung/hadoop-mpi-inmemory/deploy";	
+		DATA_FOLDER				= "/work1/t2g-16IAI/chung/hdfs-mpi-inmemory";
+		JAVA_HOME				= "/home/usr4/16IAI819/.local/jdk1.7.0_65";	
+		USERNAME				= "16IAI819";		
 		
 		MAPREDUCE_JOB 			= DEPLOY_FOLDER + "/apps.sh";
 		
@@ -67,7 +67,9 @@ public class Configure {
 		ELAPSED_TIME			= "00:30:00";	
 		
 		NUMBER_PROCESS_EACH_NODE= 7;	
-	
+		NUMBER_OF_EXTRA_NODE = 10;
+		MAXIMUM_DIRECT_MEMORY = 0*1024*1024;
+		
 		LOCK_FILE_PATH = DEPLOY_FOLDER + "/hadoop/lock/";		
 	}
 	
