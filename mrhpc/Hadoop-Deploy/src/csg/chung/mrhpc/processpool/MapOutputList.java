@@ -3,6 +3,7 @@ package csg.chung.mrhpc.processpool;
 import java.util.ArrayList;
 import java.util.List;
 
+import csg.chung.mrhpc.utils.Constants;
 import csg.chung.mrhpc.utils.Lib;
 import csg.chung.mrhpc.utils.MapOutputObj;
 
@@ -14,7 +15,7 @@ public class MapOutputList {
 	}
 	
 	public synchronized boolean checkFull(){
-		return mapOutputList.size()*SendingPool.SLOT_BUFFER_SIZE < Configure.MAXIMUM_DIRECT_MEMORY ? false : true;
+		return mapOutputList.size()*SendingPool.SLOT_BUFFER_SIZE/Constants.ONE_MB < Configure.MAXIMUM_DIRECT_MEMORY ? false : true;
 	}
 	
 	public synchronized void add(MapOutputObj obj){

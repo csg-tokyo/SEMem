@@ -37,4 +37,6 @@ public class Constants {
 	
 	public static final int FULL				= 1;	
 	public static final int AVAILABLE			= 0;
+	
+	public static final int ONE_MB				= 1024*1024;
 }
