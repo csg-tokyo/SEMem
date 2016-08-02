@@ -33,13 +33,15 @@ public class FX10 {
 					 Lib.runCommand(Configure.MAPREDUCE_JOB);
 					 System.out.println("Running MapReduce jobs");					
 				}else{
-					// Run Extra node Manager
-					if (rank == MPI.COMM_WORLD.getSize() - 1){
-						ExtranodeMgr extraNodeMgr = new ExtranodeMgr();
-						extraNodeMgr.waitingNonblocking();
-					}else{
-						ExtranodeData extraNodeData = new ExtranodeData(rank);
-						extraNodeData.waitingNonblocking();
+					if (Configure.NUMBER_OF_EXTRA_NODE > 0){
+						// Run Extra node Manager
+						if (rank == MPI.COMM_WORLD.getSize() - 1){
+							ExtranodeMgr extraNodeMgr = new ExtranodeMgr();
+							extraNodeMgr.waitingNonblocking();
+						}else{
+							ExtranodeData extraNodeData = new ExtranodeData(rank);
+							extraNodeData.waitingNonblocking();
+						}
 					}
 				}
 			}else{
@@ -166,10 +168,11 @@ public class FX10 {
 			System.out.println("DataNode " + rank + " is starting");
 			
 			// Start DataNode
-			Lib.runCommand(FX10.HADOOP_FOLDER + rank + "/sbin/hadoop-daemon.sh start datanode");
-			//Lib.runCommand(FX10.HADOOP_FOLDER + rank + "/sbin/yarn-daemon.sh start nodemanager");
-			
-			System.out.println("Start DataNode " + rank + " --> OK");
+			if (rank <= Configure.NUMBER_PROCESS_EACH_NODE * Configure.NUMBER_DATA_NODE){
+				Lib.runCommand(FX10.HADOOP_FOLDER + rank + "/sbin/hadoop-daemon.sh start datanode");
+				//Lib.runCommand(FX10.HADOOP_FOLDER + rank + "/sbin/yarn-daemon.sh start nodemanager");
+				System.out.println("Start DataNode " + rank + " --> OK");
+			}
 			//Lib.runCommand("java csg.chung.mrhpc.deploy.test.SortClient >> /mppxb/c83014/tuning/rank/" + rank + ".txt 2>&1");
 			//new SortThread(rank).start();
 			//new SortClient(rank);

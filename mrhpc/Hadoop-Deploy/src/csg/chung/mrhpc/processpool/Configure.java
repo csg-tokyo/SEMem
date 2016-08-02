@@ -43,9 +43,11 @@ public class Configure {
 	
 	public static int NUMBER_PROCESS_EACH_NODE 	= 7;
 	
-	public static int NUMBER_OF_EXTRA_NODE = 10;
+	public static int NUMBER_OF_EXTRA_NODE = 2;
+	// In MB
+	public static int MAXIMUM_DIRECT_MEMORY = 16*1024;
 	
-	public static int MAXIMUM_DIRECT_MEMORY = 0*1024*1024;
+	public static int NUMBER_DATA_NODE = 32;
 	
 	/**
 	 * Lock file
@@ -67,7 +69,10 @@ public class Configure {
 		ELAPSED_TIME			= "00:30:00";	
 		
 		NUMBER_PROCESS_EACH_NODE= 7;	
-	
+		NUMBER_OF_EXTRA_NODE = 14;
+		MAXIMUM_DIRECT_MEMORY = 1*1024;
+		NUMBER_DATA_NODE = 32;
+		
 		LOCK_FILE_PATH = DEPLOY_FOLDER + "/hadoop/lock/";		
 	}
 	
