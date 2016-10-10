@@ -78,7 +78,7 @@ public class ShuffleManager {
 				else {
 					MapOutputObj obj = Lib.readDataFromBuffer(buf, status.getCount(MPI.BYTE));
 					mapOutputList.add(obj);
-					System.out.println(ID + ": " + "Store Map ID: " + obj.getMapID() + "-" + obj.getReduceID());
+					System.out.println(ID + ": " + mapOutputList.getSize() + ": " + "Store Map ID: " + obj.getMapID() + "-" + obj.getReduceID());
 				}
 			}	
 			sendingPool.progress();
