@@ -15,7 +15,7 @@ public class MapOutputList {
 	}
 	
 	public synchronized boolean checkFull(){
-		return mapOutputList.size()*SendingPool.SLOT_BUFFER_SIZE/Constants.ONE_MB < Configure.MAXIMUM_DIRECT_MEMORY ? false : true;
+		return (int)(((double)SendingPool.SLOT_BUFFER_SIZE / Constants.ONE_MB) * mapOutputList.size()) < Configure.MAXIMUM_DIRECT_MEMORY ? false : true;
 	}
 	
 	public synchronized void add(MapOutputObj obj){
@@ -39,5 +39,9 @@ public class MapOutputList {
 		}
 		
 		return null;
+	}
+	
+	public int getSize(){
+		return this.mapOutputList.size();
 	}
 }
