@@ -54,7 +54,7 @@ public class ShuffleManager {
 					String appID = split[2];
 					String mapID = split[3];
 					int rID = Integer.parseInt(split[4]);
-					System.out.println(ID + ": " + "rID:" + mapID + " - " + rID);
+					//System.out.println(ID + ": " + "rID:" + mapID + " - " + rID);
 					sendingPool.addToWaitList(hostname, appID, mapID, rID, Integer.parseInt(split[1]));
 				}else
 				if (split[0].equals(Constants.CMD_CHECK_SPACE)){
@@ -73,12 +73,12 @@ public class ShuffleManager {
 				if (split[0].equals(Constants.CMD_NOTIFY_EXTRA_NODE)){
 					MapOutputObj obj = Lib.storeExtraNodeInfo(split[1], Integer.parseInt(split[2]), Integer.parseInt(split[3]));
 					mapOutputList.add(obj);
-					System.out.println(ID + ": " + "Notify: " + cmd);
+					//System.out.println(ID + ": " + "Notify: " + cmd);
 				}
 				else {
 					MapOutputObj obj = Lib.readDataFromBuffer(buf, status.getCount(MPI.BYTE));
 					mapOutputList.add(obj);
-					System.out.println(ID + ": " + mapOutputList.getSize() + ": " + "Store Map ID: " + obj.getMapID() + "-" + obj.getReduceID());
+					//System.out.println(ID + ": " + rank + ": " + mapOutputList.getSize() + ": " + "Store Map ID: " + obj.getMapID() + "-" + obj.getReduceID());
 				}
 			}	
 			sendingPool.progress();

@@ -33,12 +33,12 @@ public class Pool {
 					String cmd = sr.exchangeMsgDes(rank);	
 					String split[] = cmd.split(Constants.SPLIT_REGEX);
 					if (split[0].equals(Constants.CMD_FREE)){
-						System.out.println(rank + " Set free slot");
+						//System.out.println(rank + " Set free slot");
 						setFreeSlot(Integer.parseInt(split[1]) % Configure.NUMBER_PROCESS_EACH_NODE);
 					}
 					else{
 						split[0] = split[0].replace("default_container_executor.sh", "launch_container.sh");
-						System.out.println(rank + " recv: " + split[0]);
+						//System.out.println(rank + " recv: " + split[0]);
 						startNewProcess(split[0], split[1], split[2]);
 					}					
 			}
