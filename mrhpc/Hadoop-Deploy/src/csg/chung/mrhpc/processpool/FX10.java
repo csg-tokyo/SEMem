@@ -14,10 +14,10 @@ import csg.chung.mrhpc.utils.Constants;
 public class FX10 {
 	/* Don't change the below constants */
 	public final static String DATA_FOLDER 				= Configure.DATA_FOLDER + "/";
-	public final static String TMP_FOLDER 				= Configure.DEPLOY_FOLDER + "/hadoop/tmp/";
+	public final static String TMP_FOLDER 				= "/scr/";//Configure.DEPLOY_FOLDER + "/hadoop/tmp/";
 	public final static String HADOOP_FOLDER 			= Configure.DEPLOY_FOLDER + "/hadoop/code/";
 	public final static String OPENMPI_JAVA_LIB 		= Configure.DEPLOY_FOLDER + "/openmpi/lib/";	
-	public final static String HOST_FILE				= TMP_FOLDER + "hostfile";	
+	public final static String HOST_FILE				= Configure.DEPLOY_FOLDER + "/hadoop/" + "hostfile";
 	
 	private int rank, size;
 	
