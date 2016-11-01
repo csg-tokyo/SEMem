@@ -14,7 +14,7 @@ import csg.chung.mrhpc.utils.Constants;
 public class FX10 {
 	/* Don't change the below constants */
 	public final static String DATA_FOLDER 				= Configure.DATA_FOLDER + "/";
-	public final static String TMP_FOLDER 				= "/scr/";//Configure.DEPLOY_FOLDER + "/hadoop/tmp/";
+	public final static String TMP_FOLDER 				= "/scr/tmp/";//Configure.DEPLOY_FOLDER + "/hadoop/tmp/";
 	public final static String HADOOP_FOLDER 			= Configure.DEPLOY_FOLDER + "/hadoop/code/";
 	public final static String OPENMPI_JAVA_LIB 		= Configure.DEPLOY_FOLDER + "/openmpi/lib/";	
 	public final static String HOST_FILE				= Configure.DEPLOY_FOLDER + "/hadoop/" + "hostfile";
@@ -86,7 +86,7 @@ public class FX10 {
 		}					
 	}
 	
-	public void startNonMPIProcess(){		
+	public void startNonMPIProcess() throws InterruptedException{		
 		if (rank % Configure.NUMBER_PROCESS_EACH_NODE == 0){
 			initialize();
 			
@@ -108,9 +108,13 @@ public class FX10 {
 	
 	/**
 	 * Initialize installation
+	 * @throws InterruptedException 
 	 */
-	public void initialize(){
+	public void initialize() throws InterruptedException{
 		Lib.runCommand("mkdir " + Configure.DEPLOY_FOLDER + "/hadoop");
+		Lib.runCommand("rm -rf /scr/*");
+ 		Lib.runCommand("rm -rf " + TMP_FOLDER);
+ 		Thread.sleep(30*1000);
 		Lib.runCommand("mkdir " + TMP_FOLDER);
 		Lib.runCommand("mkdir " + HADOOP_FOLDER);
 		Lib.runCommand("mkdir " + Configure.LOCK_FILE_PATH);
