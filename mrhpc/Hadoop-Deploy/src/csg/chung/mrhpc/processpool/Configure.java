@@ -43,7 +43,7 @@ public class Configure {
 	
 	public static int NUMBER_PROCESS_EACH_NODE 	= 7;
 	
-	public static int NUMBER_OF_EXTRA_NODE = 2;
+	public static int NUMBER_OF_EXTRA_NODE = 8;
 	// In MB
 	public static int MAXIMUM_DIRECT_MEMORY = 16*1024;
 	
