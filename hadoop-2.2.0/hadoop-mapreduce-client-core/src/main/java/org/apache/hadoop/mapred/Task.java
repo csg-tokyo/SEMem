@@ -1304,7 +1304,7 @@ abstract public class Task implements Writable, Configurable {
     public synchronized void collect(K key, V value)
         throws IOException {
       outCounter.increment(1);
-      writer.append(key, value);
+      writer.appendBuffer(key, value);
       if ((outCounter.getValue() % progressBar) == 0) {
         progressable.progress();
       }

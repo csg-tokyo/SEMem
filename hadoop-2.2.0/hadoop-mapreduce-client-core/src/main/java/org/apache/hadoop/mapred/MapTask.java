@@ -1605,17 +1605,17 @@ public class MapTask extends Task {
                                        InterruptedException {
       //approximate the length of the output file to be the length of the
       //buffer + header lengths for the partitions
-     // final long size = (bufend >= bufstart
-     //     ? bufend - bufstart
-     //     : (bufvoid - bufend) + bufstart) +
-     //             partitions * APPROX_HEADER_LENGTH;
-      //FSDataOutputStream out = null;
+      final long size = (bufend >= bufstart
+          ? bufend - bufstart
+          : (bufvoid - bufend) + bufstart) +
+                  partitions * APPROX_HEADER_LENGTH;
+      FSDataOutputStream out = null;
       try {
         // create spill file
-        //final SpillRecord spillRec = new SpillRecord(partitions);
-        //final Path filename =
-        //    mapOutputFile.getSpillFileForWrite(numSpills, size);
-        //out = rfs.create(filename);
+        final SpillRecord spillRec = new SpillRecord(partitions);
+        final Path filename =
+            mapOutputFile.getSpillFileForWrite(numSpills, size);
+        out = rfs.create(filename);
 
         final int mstart = kvend / NMETA;
         final int mend = 1 + // kvend is a valid record
@@ -1629,11 +1629,11 @@ public class MapTask extends Task {
         for (int i = 0; i < partitions; ++i) {
           Lib.resetBuffer(Lib.bufData);        	
         	
-          //IFile.Writer<K, V> writer = null;
+          IFile.Writer<K, V> writer = null;
           try {
             //long segmentStart = out.getPos();
-            //writer = new Writer<K, V>(job, out, keyClass, valClass, codec,
-            //                          spilledRecordsCounter);
+            writer = new Writer<K, V>(job, out, keyClass, valClass, codec,
+                                      spilledRecordsCounter);
             if (combinerRunner == null) {
               // spill directly
               DataInputBuffer key = new DataInputBuffer();
@@ -1658,7 +1658,7 @@ public class MapTask extends Task {
               // Note: we would like to avoid the combiner if we've fewer
               // than some threshold of records for a partition
               if (spstart != spindex) {
-                //combineCollector.setWriter(writer);
+                combineCollector.setWriter(writer);
                 RawKeyValueIterator kvIter =
                   new MRResultIterator(spstart, spindex);
                 combinerRunner.combine(kvIter, combineCollector);
