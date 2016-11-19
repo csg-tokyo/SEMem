@@ -43,6 +43,8 @@ import org.apache.hadoop.io.compress.Decompressor;
 import org.apache.hadoop.io.serializer.SerializationFactory;
 import org.apache.hadoop.io.serializer.Serializer;
 
+import csg.chung.mrhpc.utils.Lib;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -229,6 +231,51 @@ public class IFile {
                                   WritableUtils.getVIntSize(valueLength);
       ++numRecordsWritten;
     }
+    
+    public void appendBuffer(K key, V value) throws IOException {
+        if (key.getClass() != keyClass)
+          throw new IOException("wrong key class: "+ key.getClass()
+                                +" is not "+ keyClass);
+        if (value.getClass() != valueClass)
+          throw new IOException("wrong value class: "+ value.getClass()
+                                +" is not "+ valueClass);
+
+        // Append the 'key'
+        keySerializer.serialize(key);
+        int keyLength = buffer.getLength();
+        if (keyLength < 0) {
+          throw new IOException("Negative key-length not allowed: " + keyLength + 
+                                " for " + key);
+        }
+
+        // Append the 'value'
+        valueSerializer.serialize(value);
+        int valueLength = buffer.getLength() - keyLength;
+        if (valueLength < 0) {
+          throw new IOException("Negative value-length not allowed: " + 
+                                valueLength + " for " + value);
+        }
+        
+        // Write the record out
+        //WritableUtils.writeVInt(out, keyLength);                  // key length
+        Lib.writeVInt(Lib.bufData, keyLength);
+        //WritableUtils.writeVInt(out, valueLength);                // value length
+        Lib.writeVInt(Lib.bufData, valueLength);
+        //out.write(buffer.getData(), 0, buffer.getLength());       // data
+        Lib.bufData.put(buffer.getData(), 0, buffer.getLength());
+        Lib.bufDataLength += keyLength + valueLength + 
+                WritableUtils.getVIntSize(keyLength) + 
+                WritableUtils.getVIntSize(valueLength);
+        
+        // Reset
+        buffer.reset();
+        
+        // Update bytes written
+        decompressedBytesWritten += keyLength + valueLength + 
+                                    WritableUtils.getVIntSize(keyLength) + 
+                                    WritableUtils.getVIntSize(valueLength);
+        ++numRecordsWritten;
+      }    
     
     public void append(DataInputBuffer key, DataInputBuffer value)
     throws IOException {
