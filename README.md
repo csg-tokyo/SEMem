@@ -1,3 +1,1 @@
-Here is Chung's Branch :)
-==========
-Hello World!!!
+SEMem is configured for TSUBAME 2.5.
